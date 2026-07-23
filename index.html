@@ -37,7 +37,7 @@
             margin-bottom: 25px;
         }
 
-        /* 첫 화면 전용 제목 스타일 (1.5배 확대) */
+        /* 첫 화면 전용 제목 스타일 */
         #homeScreen h2 {
             font-size: 30px;
             line-height: 1.4;
@@ -45,7 +45,7 @@
             margin-bottom: 40px;
         }
         
-        /* 시작 화면 버튼 스타일 (1.5배 확대) */
+        /* 시작 화면 버튼 스타일 */
         .selection-btn {
             width: 100%;
             padding: 40px 20px;
@@ -422,23 +422,24 @@
     <!-- 공통: 의료비 입력 -->
     <div class="form-group">
         <label for="covered" id="label_covered">급여 의료비 (원)</label>
-        <input type="number" id="covered" placeholder="예: 100000" min="0" inputmode="numeric">
+        <!-- type="text"로 변경, oninput을 통해 포맷 적용 -->
+        <input type="text" id="covered" placeholder="예: 100,000" inputmode="numeric" oninput="formatNumber(this)">
     </div>
 
     <div class="form-group" id="group_general_non_covered">
         <label for="general_non_covered" id="label_non_covered">일반 비급여 의료비 (원)</label>
-        <input type="number" id="general_non_covered" placeholder="예: 100000" min="0" inputmode="numeric">
+        <input type="text" id="general_non_covered" placeholder="예: 100,000" inputmode="numeric" oninput="formatNumber(this)">
     </div>
 
     <!-- 5세대 전용 입력 -->
     <div class="form-group" id="group_severe_5g" style="display: none;">
         <label for="severe_5g">중증 비급여 (특약1) (원)</label>
-        <input type="number" id="severe_5g" placeholder="예: 100000" min="0" inputmode="numeric">
+        <input type="text" id="severe_5g" placeholder="예: 100,000" inputmode="numeric" oninput="formatNumber(this)">
     </div>
 
     <div class="form-group" id="group_non_severe_5g" style="display: none;">
         <label for="non_severe_5g">비중증 비급여 (특약2) (원)</label>
-        <input type="number" id="non_severe_5g" placeholder="예: 100000" min="0" inputmode="numeric">
+        <input type="text" id="non_severe_5g" placeholder="예: 100,000" inputmode="numeric" oninput="formatNumber(this)">
     </div>
 
     <!-- 3~5세대 일반 실손 전용 3대 비급여 -->
@@ -447,15 +448,15 @@
         <div class="sub-input-group">
             <div class="sub-group-item">
                 <label for="major3_manual">도수/체외충격파/증식치료 (원)</label>
-                <input type="number" id="major3_manual" placeholder="예: 150000" min="0" inputmode="numeric">
+                <input type="text" id="major3_manual" placeholder="예: 150,000" inputmode="numeric" oninput="formatNumber(this)">
             </div>
             <div class="sub-group-item">
                 <label for="major3_injection">비급여 주사료 (원)</label>
-                <input type="number" id="major3_injection" placeholder="예: 50000" min="0" inputmode="numeric">
+                <input type="text" id="major3_injection" placeholder="예: 50,000" inputmode="numeric" oninput="formatNumber(this)">
             </div>
             <div class="sub-group-item">
                 <label for="major3_mri">자기공명영상진단 MRI/MRA (원)</label>
-                <input type="number" id="major3_mri" placeholder="예: 400000" min="0" inputmode="numeric">
+                <input type="text" id="major3_mri" placeholder="예: 400,000" inputmode="numeric" oninput="formatNumber(this)">
             </div>
         </div>
     </div>
@@ -561,6 +562,25 @@
             </ul>`
         }
     };
+
+    // --- 콤마 자동 입력 및 값 추출 로직 추가 --- //
+    function formatNumber(input) {
+        // 숫자만 추출
+        let value = input.value.replace(/[^0-9]/g, '');
+        // 콤마 추가
+        if (value !== '') {
+            input.value = Number(value).toLocaleString('ko-KR');
+        } else {
+            input.value = '';
+        }
+    }
+
+    function getNumVal(elementId) {
+        let val = document.getElementById(elementId).value;
+        if (!val) return 0;
+        // 콤마 제거 후 숫자로 변환
+        return Number(val.replace(/,/g, '')) || 0;
+    }
 
     // --- UI 네비게이션 구역 --- //
     function startCalculator(mode) {
@@ -694,14 +714,15 @@
         const careType = document.querySelector('input[name="care_type"]:checked').value;
         const tier = document.getElementById('hospital_tier').value;
         
-        const covered = Number(document.getElementById('covered').value) || 0;
-        const general_nc = Number(document.getElementById('general_non_covered').value) || 0;
-        const severe_nc = Number(document.getElementById('severe_5g').value) || 0;
-        const non_severe_nc = Number(document.getElementById('non_severe_5g').value) || 0;
+        // getNumVal 함수를 사용하여 콤마를 제거하고 숫자 값만 가져옴
+        const covered = getNumVal('covered');
+        const general_nc = getNumVal('general_non_covered');
+        const severe_nc = getNumVal('severe_5g');
+        const non_severe_nc = getNumVal('non_severe_5g');
 
-        const m3_manual = Number(document.getElementById('major3_manual').value) || 0;
-        const m3_injection = Number(document.getElementById('major3_injection').value) || 0;
-        const m3_mri = Number(document.getElementById('major3_mri').value) || 0;
+        const m3_manual = getNumVal('major3_manual');
+        const m3_injection = getNumVal('major3_injection');
+        const m3_mri = getNumVal('major3_mri');
 
         let payoutCovered = 0, payoutGeneralNC = 0, payoutSevere = 0, payoutNonSevere = 0;
         let payoutM3Manual = 0, payoutM3Injection = 0, payoutM3MRI = 0;
@@ -781,8 +802,8 @@
 
     function calculateSick() {
         const careType = document.querySelector('input[name="care_type"]:checked').value;
-        const covered = Number(document.getElementById('covered').value) || 0;
-        const nonCovered = Number(document.getElementById('general_non_covered').value) || 0;
+        const covered = getNumVal('covered');
+        const nonCovered = getNumVal('general_non_covered');
         
         const totalMedical = covered + nonCovered;
         let payout = 0;
