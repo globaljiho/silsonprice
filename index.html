@@ -5,77 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>세대별 실손의료보험 계산기</title>
     <style>
+        /* 폰트 및 기본 모바일 최적화 설정 */
         body {
-            font-family: 'Malgun Gothic', sans-serif;
-            background-color: #f4f7f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+            background-color: #f2f4f6;
+            margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
         .calculator-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: #ffffff;
+            padding: 35px 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
+            box-sizing: border-box;
         }
         h2 {
             text-align: center;
-            color: #333;
-            margin-bottom: 20px;
+            color: #191f28;
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 30px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 24px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #4e5968;
         }
         select, input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 16px;
+            border: 1px solid #d1d6db;
+            border-radius: 12px;
             box-sizing: border-box;
-            font-size: 16px;
+            font-size: 16px; /* iOS 자동 확대 방지 */
+            color: #333d4b;
+            background-color: #fafafa;
+            -webkit-appearance: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        select {
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238b95a1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px top 50%;
+            background-size: 12px auto;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3182f6;
+            box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.1);
+            background-color: #ffffff;
+        }
+        input::placeholder {
+            color: #b0b8c1;
         }
         button {
             width: 100%;
-            padding: 12px;
-            background-color: #28a745;
+            padding: 18px;
+            background-color: #3182f6;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 12px;
             font-size: 18px;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
             margin-top: 10px;
+            transition: background-color 0.2s;
         }
-        button:hover {
-            background-color: #218838;
+        button:active {
+            background-color: #1b64da;
         }
         .result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e9ecef;
-            border-radius: 5px;
+            margin-top: 30px;
+            padding: 30px 20px;
+            background-color: #f2f8ff;
+            border-radius: 16px;
             text-align: center;
         }
         .result-box span {
             display: block;
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 5px;
+            font-size: 15px;
+            color: #4e5968;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
         .result-amount {
-            font-size: 24px;
-            font-weight: bold;
-            color: #007bff;
+            font-size: 32px;
+            font-weight: 800;
+            color: #3182f6;
+            letter-spacing: -0.5px;
+        }
+        .disclaimer {
+            font-size: 13px;
+            color: #8b95a1;
+            margin-top: 15px;
+            line-height: 1.5;
+            word-break: keep-all;
         }
     </style>
 </head>
@@ -96,12 +133,12 @@
 
     <div class="form-group">
         <label for="covered">급여 의료비 (원)</label>
-        <input type="number" id="covered" placeholder="예: 1000000" min="0">
+        <input type="number" id="covered" placeholder="예: 1000000" min="0" inputmode="numeric">
     </div>
 
     <div class="form-group">
         <label for="nonCovered">비급여 의료비 (원)</label>
-        <input type="number" id="nonCovered" placeholder="예: 500000" min="0">
+        <input type="number" id="nonCovered" placeholder="예: 500000" min="0" inputmode="numeric">
     </div>
 
     <button onclick="calculateInsurance()">계산하기</button>
@@ -109,7 +146,7 @@
     <div class="result-box" id="resultBox" style="display: none;">
         <span>예상 보험금 수령액</span>
         <div class="result-amount" id="resultAmount">0 원</div>
-        <span style="font-size: 12px; margin-top: 10px;">*입원비 기준 단순화된 산출금액으로 실제 지급액과 다를 수 있습니다.</span>
+        <div class="disclaimer">*입원비 기준 단순화된 산출금액으로 실제 지급액과 다를 수 있습니다.</div>
     </div>
 </div>
 
@@ -127,31 +164,25 @@
 
         switch(generation) {
             case "1":
-                // 1세대: 통상 자기부담금 없음 (100% 보장)
                 payout = covered + nonCovered;
                 break;
             case "2":
-                // 2세대: 통상 자기부담금 10% (선택형 기준, 90% 보장)
                 payout = (covered + nonCovered) * 0.9;
                 break;
             case "3":
-                // 3세대: 급여 10%, 비급여 20% 자기부담금 (입원 기준)
                 payout = (covered * 0.9) + (nonCovered * 0.8);
                 break;
             case "4":
-                // 4세대: 급여 20%, 비급여 30% 자기부담금
                 payout = (covered * 0.8) + (nonCovered * 0.7);
                 break;
             default:
                 payout = 0;
         }
 
-        // 결과 화면 표시
         const resultBox = document.getElementById('resultBox');
         const resultAmount = document.getElementById('resultAmount');
         
         resultBox.style.display = 'block';
-        // 천 단위 콤마 추가
         resultAmount.innerText = Math.floor(payout).toLocaleString('ko-KR') + " 원";
     }
 </script>
