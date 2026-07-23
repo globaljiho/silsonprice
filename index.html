@@ -17,7 +17,8 @@
             box-sizing: border-box;
         }
         .calculator-container {
-            background-color: #ffffff;
+            /* 기존 흰색 바탕에서 밝은 파스텔 블루 톤으로 변경 */
+            background-color: #f4f9ff; 
             padding: 35px 25px;
             border-radius: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
@@ -29,7 +30,7 @@
         h2 {
             text-align: center;
             color: #191f28;
-            font-size: 22px;
+            font-size: 24px; /* 22px에서 24px로 +2 증가 */
             font-weight: 700;
             margin-top: 0;
             margin-bottom: 25px;
@@ -38,33 +39,33 @@
         /* 시작 화면 버튼 스타일 */
         .selection-btn {
             width: 100%;
-            padding: 20px;
-            margin-bottom: 15px;
+            padding: 35px 20px; /* 위아래 패딩 20px에서 35px로 증가 (약 1.5배 높이) */
+            margin-bottom: 20px;
             background-color: #ffffff;
             color: #3182f6;
             border: 2px solid #3182f6;
             border-radius: 12px;
-            font-size: 18px;
+            font-size: 20px; /* 18px에서 20px로 +2 증가 */
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 8px; /* 텍스트 간격 살짝 증가 */
         }
         .selection-btn:hover, .selection-btn:active {
             background-color: #3182f6;
             color: #ffffff;
         }
         .selection-btn span {
-            font-size: 13px;
+            font-size: 15px; /* 13px에서 15px로 +2 증가 */
             font-weight: 500;
             color: inherit;
             opacity: 0.8;
         }
 
-        /* 눈에 확 띄게 개선된 뒤로가기 버튼 */
+        /* 뒤로가기 버튼 */
         .back-btn {
             background-color: rgba(49, 130, 246, 0.1);
             color: #3182f6;
@@ -86,10 +87,11 @@
         /* 입원/통원 토글 스위치 스타일 */
         .toggle-wrapper {
             display: flex;
-            background-color: #f2f4f6;
+            background-color: #ffffff;
             border-radius: 12px;
             padding: 4px;
             margin-bottom: 25px;
+            border: 1px solid #e5e8eb;
         }
         .toggle-wrapper input[type="radio"] {
             display: none;
@@ -107,7 +109,7 @@
             margin-bottom: 0;
         }
         .toggle-wrapper input[type="radio"]:checked + label {
-            background-color: #ffffff;
+            background-color: #f4f9ff;
             color: #3182f6;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
@@ -130,7 +132,7 @@
             box-sizing: border-box;
             font-size: 15px;
             color: #333d4b;
-            background-color: #fafafa;
+            background-color: #ffffff;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
         select {
@@ -144,11 +146,10 @@
             outline: none;
             border-color: #3182f6;
             box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.1);
-            background-color: #ffffff;
         }
         
         .sub-input-group {
-            background-color: #fafafa;
+            background-color: #ffffff;
             border: 1px solid #e5e8eb;
             border-radius: 12px;
             padding: 16px;
@@ -167,7 +168,7 @@
         }
         .sub-input-group input {
             padding: 12px;
-            background-color: #ffffff;
+            background-color: #fafafa;
         }
 
         .btn-group-row {
@@ -177,7 +178,7 @@
         }
         .info-btn {
             flex: 1;
-            padding: 8px 10px;
+            padding: 10px;
             font-size: 13px;
             font-weight: 600;
             border: none;
@@ -217,12 +218,15 @@
             background-color: #1b64da;
         }
         
+        /* 배경이 파스텔로 바뀌었으므로 결과창은 흰색으로 대비를 줌 */
         .result-box {
             margin-top: 25px;
             padding: 25px 20px;
-            background-color: #f2f8ff;
+            background-color: #ffffff; 
             border-radius: 12px;
             text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #e5e8eb;
         }
         .result-box > span {
             display: block;
@@ -232,12 +236,12 @@
             margin-bottom: 12px;
         }
         .breakdown-container {
-            background-color: #ffffff;
+            background-color: #fafafa;
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 20px;
             text-align: left;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border: 1px solid #f2f4f6;
         }
         .breakdown-item {
             display: flex;
@@ -344,8 +348,8 @@
 
 <!-- 1. 시작 화면 -->
 <div id="homeScreen" class="calculator-container">
-    <h2>어떤 실손보험을 계산할까요?</h2>
-    <div style="margin-top: 30px;">
+    <h2 style="margin-top: 10px;">어떤 실손보험을 계산할까요?</h2>
+    <div style="margin-top: 35px;">
         <button class="selection-btn" onclick="startCalculator('general')">
             일반 실손의료보험
             <span>1세대 ~ 5세대 세부 계산</span>
@@ -508,7 +512,7 @@
 </div>
 
 <script>
-    let currentMode = 'general'; // 'general' or 'sick'
+    let currentMode = 'general'; 
 
     // --- 데이터 정의 구역 --- //
     const coverageInfo = {
@@ -556,7 +560,6 @@
         document.getElementById('homeScreen').style.display = 'none';
         document.getElementById('calcScreen').style.display = 'block';
         
-        // 입력 필드 리셋
         document.getElementById('covered').value = '';
         document.getElementById('general_non_covered').value = '';
         document.getElementById('major3_manual').value = '';
@@ -579,7 +582,6 @@
             document.getElementById('group_generation').style.display = 'none';
             document.getElementById('group_sick_info').style.display = 'block';
             
-            // 유병자는 급여/비급여 합산 처리하므로 라벨을 심플하게
             document.getElementById('label_covered').innerText = '의료비 총액 (원)';
             document.getElementById('label_non_covered').innerText = '비급여 의료비 (선택사항, 합산용)';
             document.getElementById('resLabelCovered').innerText = '의료비 보상액:';
@@ -598,7 +600,6 @@
         const careType = document.querySelector('input[name="care_type"]:checked').value;
         const tierGroup = document.getElementById('group_hospital_tier');
 
-        // 필드 전체 가리기
         document.getElementById('group_general_non_covered').style.display = 'none';
         document.getElementById('group_3_major').style.display = 'none';
         document.getElementById('group_severe_5g').style.display = 'none';
@@ -643,8 +644,6 @@
                 document.getElementById('itemNonSevere').style.display = 'flex';
             }
         } else {
-            // 유병자 모드
-            // 병원규모 불필요(정액공제 2만원 고정), 3대비급여/5세대특약 불필요
             document.getElementById('group_general_non_covered').style.display = 'block';
         }
     }
@@ -781,16 +780,13 @@
         let payout = 0;
 
         if (careType === 'inpatient') {
-            // 유병자 입원: Max(10만원, 30%)
             let deduct = Math.max(100000, totalMedical * 0.3);
             payout = Math.max(0, totalMedical - deduct);
         } else {
-            // 유병자 외래: Max(2만원, 30%)
             let deduct = Math.max(20000, totalMedical * 0.3);
             payout = Math.max(0, totalMedical - deduct);
         }
 
-        // 결과를 뭉뚱그려 급여란에 띄우기 (실제론 총합)
         let propCov = totalMedical > 0 ? (covered / totalMedical) * payout : 0;
         let propNon = totalMedical > 0 ? (nonCovered / totalMedical) * payout : 0;
 
