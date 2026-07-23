@@ -38,11 +38,11 @@
         }
 
         /* 첫 화면 전용 제목 스타일 */
-        #homeScreen h2 {
+        #homeScreen h2, #loginScreen h2 {
             font-size: 30px;
             line-height: 1.4;
             word-break: keep-all;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
         
         /* 시작 화면 버튼 스타일 */
@@ -354,8 +354,20 @@
 </head>
 <body>
 
-<!-- 1. 시작 화면 -->
-<div id="homeScreen" class="calculator-container">
+<!-- 0. 비밀번호 입력 화면 -->
+<div id="loginScreen" class="calculator-container">
+    <h2 style="margin-top: 10px; margin-bottom: 15px;">비밀번호 입력</h2>
+    <p style="text-align: center; color: #4e5968; margin-bottom: 30px; font-size: 15px; word-break: keep-all;">
+        실손의료보험 계산기를 사용하려면<br>비밀번호를 입력해주세요.
+    </p>
+    <div class="form-group">
+        <input type="password" id="passwordInput" placeholder="비밀번호를 입력하세요" onkeypress="if(event.keyCode==13) checkPassword()" style="text-align: center; font-size: 18px; letter-spacing: 2px;">
+    </div>
+    <button class="submit-btn" onclick="checkPassword()" style="margin-top: 15px; padding: 18px; font-size: 18px;">확인</button>
+</div>
+
+<!-- 1. 시작 화면 (기본 숨김 처리) -->
+<div id="homeScreen" class="calculator-container" style="display: none;">
     <h2 style="margin-top: 10px;">어떤 실손보험을 계산할까요?</h2>
     <div style="margin-top: 35px;">
         <button class="selection-btn" onclick="startCalculator('general')">
@@ -369,7 +381,7 @@
     </div>
 </div>
 
-<!-- 2. 계산기 화면 -->
+<!-- 2. 계산기 화면 (기본 숨김 처리) -->
 <div id="calcScreen" class="calculator-container" style="display: none;">
     <button class="back-btn" onclick="goHome()">← 실손 유형 다시 선택하기</button>
     <h2 id="calcTitle">실손보험 예상 수령액 계산기</h2>
@@ -422,7 +434,6 @@
     <!-- 공통: 의료비 입력 -->
     <div class="form-group">
         <label for="covered" id="label_covered">급여 의료비 (원)</label>
-        <!-- type="text"로 변경, oninput을 통해 포맷 적용 -->
         <input type="text" id="covered" placeholder="예: 100,000" inputmode="numeric" oninput="formatNumber(this)">
     </div>
 
@@ -521,6 +532,21 @@
 </div>
 
 <script>
+    // --- 비밀번호 설정 구역 --- //
+    // 원하시는 비밀번호로 아래 숫자를 변경하시면 됩니다. (예: "1234", "abcd" 등)
+    const SECRET_PASSWORD = "1234";
+
+    function checkPassword() {
+        const inputStr = document.getElementById('passwordInput').value;
+        if (inputStr === SECRET_PASSWORD) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('homeScreen').style.display = 'block';
+        } else {
+            alert('비밀번호가 일치하지 않습니다.');
+            document.getElementById('passwordInput').value = '';
+        }
+    }
+
     let currentMode = 'general'; 
 
     // --- 데이터 정의 구역 --- //
@@ -563,11 +589,9 @@
         }
     };
 
-    // --- 콤마 자동 입력 및 값 추출 로직 추가 --- //
+    // --- 콤마 자동 입력 및 값 추출 로직 --- //
     function formatNumber(input) {
-        // 숫자만 추출
         let value = input.value.replace(/[^0-9]/g, '');
-        // 콤마 추가
         if (value !== '') {
             input.value = Number(value).toLocaleString('ko-KR');
         } else {
@@ -578,7 +602,6 @@
     function getNumVal(elementId) {
         let val = document.getElementById(elementId).value;
         if (!val) return 0;
-        // 콤마 제거 후 숫자로 변환
         return Number(val.replace(/,/g, '')) || 0;
     }
 
@@ -714,7 +737,6 @@
         const careType = document.querySelector('input[name="care_type"]:checked').value;
         const tier = document.getElementById('hospital_tier').value;
         
-        // getNumVal 함수를 사용하여 콤마를 제거하고 숫자 값만 가져옴
         const covered = getNumVal('covered');
         const general_nc = getNumVal('general_non_covered');
         const severe_nc = getNumVal('severe_5g');
