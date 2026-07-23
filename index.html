@@ -64,21 +64,23 @@
             opacity: 0.8;
         }
 
-        /* 뒤로가기 버튼 */
+        /* 눈에 확 띄게 개선된 뒤로가기 버튼 */
         .back-btn {
-            background: none;
+            background-color: rgba(49, 130, 246, 0.1);
+            color: #3182f6;
             border: none;
-            color: #8b95a1;
+            border-radius: 8px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            padding: 0;
+            padding: 8px 14px;
             margin-bottom: 20px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            transition: background-color 0.2s;
         }
-        .back-btn:hover {
-            color: #4e5968;
+        .back-btn:hover, .back-btn:active {
+            background-color: rgba(49, 130, 246, 0.2);
         }
 
         /* 입원/통원 토글 스위치 스타일 */
@@ -357,7 +359,7 @@
 
 <!-- 2. 계산기 화면 -->
 <div id="calcScreen" class="calculator-container" style="display: none;">
-    <button class="back-btn" onclick="goHome()">← 뒤로 가기</button>
+    <button class="back-btn" onclick="goHome()">← 실손 유형 다시 선택하기</button>
     <h2 id="calcTitle">실손보험 예상 수령액 계산기</h2>
 
     <div class="toggle-wrapper">
