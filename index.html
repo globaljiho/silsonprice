@@ -201,15 +201,6 @@
         <button type="button" class="info-btn" onclick="openModal()">💡 세대별 핵심 보장내용 보기</button>
     </div>
 
-    <!-- 2세대 2차~3차, 3세대를 위한 표준/선택형 구분 -->
-    <div class="form-group" id="group_plan_type" style="display: none;">
-        <label for="plan_type">가입 유형</label>
-        <select id="plan_type">
-            <option value="standard">표준형</option>
-            <option value="optional" selected>선택형</option>
-        </select>
-    </div>
-
     <div class="form-group">
         <label for="covered">급여 의료비 (원)</label>
         <input type="number" id="covered" placeholder="예: 1000000" min="0" inputmode="numeric">
@@ -252,7 +243,7 @@
     <div class="result-box" id="resultBox" style="display: none;">
         <span>예상 보험금 수령액</span>
         <div class="result-amount" id="resultAmount">0 원</div>
-        <div class="disclaimer">* 본 계산기는 입원 기준 공제율(약관 기준)을 적용한 단순화된 로직이며, 통원 공제금액 및 연간 한도 적용에 따라 실제 지급액과 다를 수 있습니다.</div>
+        <div class="disclaimer">* 본 계산기는 입원 기준 공제율(약관 기준)을 적용한 단순화된 로직이며, 통원 공제금액 및 연간 한도 적용에 따라 실제 지급액과 다를 수 있습니다.<br>* 2세대 및 3세대는 가입 비율이 압도적으로 높은 '선택형'을 기준으로 산출됩니다.</div>
     </div>
 </div>
 
@@ -287,20 +278,20 @@
             title: "💡 2세대 2차 (2013.4~2015.8)",
             content: `<ul>
                 <li><b>재가입 주기 신설:</b> 1년 갱신 / 15년 만기(재가입) 도입</li>
-                <li><b>자기부담금 이원화:</b> 표준형(20% 공제), 선택형(10% 공제) 중 선택</li>
+                <li><b>자기부담금:</b> 대부분 가입한 <b>'선택형'</b> 기준 10% 공제</li>
             </ul>`
         },
         "2-3": {
             title: "💡 2세대 3차 (2015.9~2017.3)",
             content: `<ul>
-                <li><b>자기부담금 변경:</b> 선택형 가입자의 경우 비급여 항목의 자기부담금이 20%로 인상됨 (급여 10% / 비급여 20%)</li>
-                <li>표준형은 기존과 동일하게 20% 공제</li>
+                <li><b>자기부담금 인상:</b> 대부분 가입한 <b>'선택형'</b> 기준, 비급여 항목의 자기부담금이 20%로 인상됨 (급여 10% / 비급여 20%)</li>
             </ul>`
         },
         "3": {
             title: "💡 3세대 실손 (2017.4~2021.6)",
             content: `<ul>
                 <li><b>3대 비급여 분리:</b> 도수치료, 비급여 주사, MRI가 특약으로 분리되며 자기부담금 30% 적용</li>
+                <li><b>자기부담금:</b> 기본 급여 10%, 기본 비급여 20% (선택형 기준)</li>
                 <li><b>할인제도:</b> 직전 2년간 비급여 청구 이력이 없으면 차기 1년간 보험료 10% 할인</li>
             </ul>`
         },
@@ -327,17 +318,12 @@
         const gen = document.getElementById('generation').value;
         
         // 필드 초기화
-        document.getElementById('group_plan_type').style.display = 'none';
         document.getElementById('group_general_non_covered').style.display = 'none';
         document.getElementById('group_3_major').style.display = 'none';
         document.getElementById('group_severe_5g').style.display = 'none';
         document.getElementById('group_non_severe_5g').style.display = 'none';
 
         // 세대별 표시 로직
-        if (gen === '2-2' || gen === '2-3' || gen === '3') {
-            document.getElementById('group_plan_type').style.display = 'block';
-        }
-
         if (gen !== '5') {
             document.getElementById('group_general_non_covered').style.display = 'block';
         }
@@ -370,7 +356,6 @@
 
     function calculateInsurance() {
         const gen = document.getElementById('generation').value;
-        const plan = document.getElementById('plan_type').value;
         const tier = document.getElementById('hospital_tier').value;
         
         const covered = Number(document.getElementById('covered').value) || 0;
@@ -384,20 +369,17 @@
         if (gen === '1') {
             payout = covered + general_nc;
         } 
-        else if (gen === '2-1') {
+        else if (gen === '2-1' || gen === '2-2') {
+            // 2세대 1차, 2차 (선택형 기준 10% 공제)
             payout = (covered + general_nc) * 0.9;
         }
-        else if (gen === '2-2') {
-            if (plan === 'standard') payout = (covered + general_nc) * 0.8;
-            else payout = (covered + general_nc) * 0.9;
-        }
         else if (gen === '2-3') {
-            if (plan === 'standard') payout = (covered + general_nc) * 0.8;
-            else payout = (covered * 0.9) + (general_nc * 0.8);
+            // 2세대 3차 (선택형 기준 급여 10%, 비급여 20% 공제)
+            payout = (covered * 0.9) + (general_nc * 0.8);
         }
         else if (gen === '3') {
-            if (plan === 'standard') payout = (covered * 0.8) + (general_nc * 0.8) + (major3_nc * 0.7);
-            else payout = (covered * 0.9) + (general_nc * 0.8) + (major3_nc * 0.7);
+            // 3세대 (선택형 기준 급여 10%, 비급여 20%, 3대 비급여 30% 공제)
+            payout = (covered * 0.9) + (general_nc * 0.8) + (major3_nc * 0.7);
         }
         else if (gen === '4') {
             payout = (covered * 0.8) + (general_nc * 0.7) + (major3_nc * 0.7);
