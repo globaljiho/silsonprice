@@ -96,6 +96,8 @@
         .submit-btn:active {
             background-color: #1b64da;
         }
+        
+        /* 결과창 스타일 개선 */
         .result-box {
             margin-top: 25px;
             padding: 25px 20px;
@@ -103,25 +105,58 @@
             border-radius: 12px;
             text-align: center;
         }
-        .result-box span {
+        .result-box > span {
             display: block;
+            font-size: 15px;
+            color: #4e5968;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .breakdown-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
             font-size: 14px;
             color: #4e5968;
+        }
+        .breakdown-item:last-child {
+            margin-bottom: 0;
+        }
+        .breakdown-item .label {
             font-weight: 600;
-            margin-bottom: 8px;
+        }
+        .breakdown-item .value {
+            font-weight: 700;
+            color: #333d4b;
         }
         .result-amount {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 800;
             color: #3182f6;
+            margin-bottom: 15px;
         }
+        /* 경고 문구 빨간색 강조 */
         .disclaimer {
             font-size: 12px;
-            color: #8b95a1;
-            margin-top: 12px;
+            color: #e53e3e; 
+            font-weight: 600;
+            margin-top: 15px;
             line-height: 1.5;
             word-break: keep-all;
+            background-color: rgba(229, 62, 62, 0.05);
+            padding: 10px;
+            border-radius: 8px;
         }
+        
+        /* 모달창 스타일 */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -241,9 +276,38 @@
     <button type="button" class="submit-btn" onclick="calculateInsurance()">보험금 산출하기</button>
 
     <div class="result-box" id="resultBox" style="display: none;">
-        <span>예상 보험금 수령액</span>
+        <span>항목별 예상 수령액 상세</span>
+        
+        <!-- 항목별 상세 내역 컨테이너 -->
+        <div id="breakdownContainer" class="breakdown-container">
+            <div class="breakdown-item" id="itemCovered">
+                <span class="label">급여:</span>
+                <span class="value" id="valCovered">0 원</span>
+            </div>
+            <div class="breakdown-item" id="itemGeneralNC">
+                <span class="label">일반 비급여:</span>
+                <span class="value" id="valGeneralNC">0 원</span>
+            </div>
+            <div class="breakdown-item" id="itemMajor3" style="display: none;">
+                <span class="label">3대 비급여:</span>
+                <span class="value" id="valMajor3">0 원</span>
+            </div>
+            <div class="breakdown-item" id="itemSevere" style="display: none;">
+                <span class="label">중증 비급여:</span>
+                <span class="value" id="valSevere">0 원</span>
+            </div>
+            <div class="breakdown-item" id="itemNonSevere" style="display: none;">
+                <span class="label">비중증 비급여:</span>
+                <span class="value" id="valNonSevere">0 원</span>
+            </div>
+        </div>
+
+        <span>총 예상 수령액</span>
         <div class="result-amount" id="resultAmount">0 원</div>
-        <div class="disclaimer">* 본 계산기는 입원 기준 공제율(약관 기준)을 적용한 단순화된 로직이며, 통원 공제금액 및 연간 한도 적용에 따라 실제 지급액과 다를 수 있습니다.</div>
+        <div class="disclaimer">
+            * 본 계산기는 입원 기준 공제율(약관 기준)을 적용한 단순화된 로직이며, 통원 공제금액 및 연간 한도 적용에 따라 실제 지급액과 다를 수 있습니다.<br>
+            * 2세대 및 3세대는 가입 비율이 압도적으로 높은 '선택형'을 기준으로 산출됩니다.
+        </div>
     </div>
 </div>
 
@@ -317,24 +381,35 @@
     function updateFields() {
         const gen = document.getElementById('generation').value;
         
-        // 필드 초기화
+        // 입력 필드 초기화
         document.getElementById('group_general_non_covered').style.display = 'none';
         document.getElementById('group_3_major').style.display = 'none';
         document.getElementById('group_severe_5g').style.display = 'none';
         document.getElementById('group_non_severe_5g').style.display = 'none';
 
-        // 세대별 표시 로직
+        // 결과 상세 항목 초기화
+        document.getElementById('itemGeneralNC').style.display = 'none';
+        document.getElementById('itemMajor3').style.display = 'none';
+        document.getElementById('itemSevere').style.display = 'none';
+        document.getElementById('itemNonSevere').style.display = 'none';
+
+        // 세대별 입력 필드 & 결과 상세 항목 표시 로직
         if (gen !== '5') {
             document.getElementById('group_general_non_covered').style.display = 'block';
+            document.getElementById('itemGeneralNC').style.display = 'flex';
         }
 
         if (gen === '3' || gen === '4' || gen === '5') {
             document.getElementById('group_3_major').style.display = 'block';
+            document.getElementById('itemMajor3').style.display = 'flex';
         }
 
         if (gen === '5') {
             document.getElementById('group_severe_5g').style.display = 'block';
             document.getElementById('group_non_severe_5g').style.display = 'block';
+            
+            document.getElementById('itemSevere').style.display = 'flex';
+            document.getElementById('itemNonSevere').style.display = 'flex';
         }
     }
 
@@ -364,25 +439,33 @@
         const severe_nc = Number(document.getElementById('severe_5g').value) || 0;
         const non_severe_nc = Number(document.getElementById('non_severe_5g').value) || 0;
 
-        let payout = 0;
+        let payoutCovered = 0;
+        let payoutGeneralNC = 0;
+        let payoutMajor3 = 0;
+        let payoutSevere = 0;
+        let payoutNonSevere = 0;
 
         if (gen === '1') {
-            payout = covered + general_nc;
+            payoutCovered = covered;
+            payoutGeneralNC = general_nc;
         } 
         else if (gen === '2-1' || gen === '2-2') {
-            // 2세대 1차, 2차 (선택형 기준 10% 공제)
-            payout = (covered + general_nc) * 0.9;
+            payoutCovered = covered * 0.9;
+            payoutGeneralNC = general_nc * 0.9;
         }
         else if (gen === '2-3') {
-            // 2세대 3차 (선택형 기준 급여 10%, 비급여 20% 공제)
-            payout = (covered * 0.9) + (general_nc * 0.8);
+            payoutCovered = covered * 0.9;
+            payoutGeneralNC = general_nc * 0.8;
         }
         else if (gen === '3') {
-            // 3세대 (선택형 기준 급여 10%, 비급여 20%, 3대 비급여 30% 공제)
-            payout = (covered * 0.9) + (general_nc * 0.8) + (major3_nc * 0.7);
+            payoutCovered = covered * 0.9;
+            payoutGeneralNC = general_nc * 0.8;
+            payoutMajor3 = major3_nc * 0.7;
         }
         else if (gen === '4') {
-            payout = (covered * 0.8) + (general_nc * 0.7) + (major3_nc * 0.7);
+            payoutCovered = covered * 0.8;
+            payoutGeneralNC = general_nc * 0.7;
+            payoutMajor3 = major3_nc * 0.7;
         }
         else if (gen === '5') {
             let tierRate = 0.7; // 기본 의원(30% 공제 = 70% 보상)
@@ -390,14 +473,26 @@
             else if (tier === 'general') tierRate = 0.5;
             else if (tier === 'tertiary') tierRate = 0.4;
 
-            payout = (covered * 0.8) + (severe_nc * 0.5) + (non_severe_nc * tierRate) + (major3_nc * 0.7);
+            payoutCovered = covered * 0.8;
+            payoutSevere = severe_nc * 0.5;
+            payoutNonSevere = non_severe_nc * tierRate;
+            payoutMajor3 = major3_nc * 0.7;
         }
 
+        const totalPayout = payoutCovered + payoutGeneralNC + payoutMajor3 + payoutSevere + payoutNonSevere;
+
+        // UI 업데이트
+        document.getElementById('valCovered').innerText = Math.floor(payoutCovered).toLocaleString('ko-KR') + " 원";
+        document.getElementById('valGeneralNC').innerText = Math.floor(payoutGeneralNC).toLocaleString('ko-KR') + " 원";
+        document.getElementById('valMajor3').innerText = Math.floor(payoutMajor3).toLocaleString('ko-KR') + " 원";
+        document.getElementById('valSevere').innerText = Math.floor(payoutSevere).toLocaleString('ko-KR') + " 원";
+        document.getElementById('valNonSevere').innerText = Math.floor(payoutNonSevere).toLocaleString('ko-KR') + " 원";
+        
         const resultBox = document.getElementById('resultBox');
         const resultAmount = document.getElementById('resultAmount');
         
         resultBox.style.display = 'block';
-        resultAmount.innerText = Math.floor(payout).toLocaleString('ko-KR') + " 원";
+        resultAmount.innerText = Math.floor(totalPayout).toLocaleString('ko-KR') + " 원";
     }
 
     // 초기화면 렌더링 시 필드 세팅
