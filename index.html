@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세대별 실손의료보험 계산기</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .calculator-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .result-box span {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .result-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator-container">
+    <h2>실손보험 예상 수령액 계산기</h2>
+    
+    <div class="form-group">
+        <label for="generation">실손보험 세대 선택</label>
+        <select id="generation">
+            <option value="1">1세대 (2009년 9월 이전)</option>
+            <option value="2">2세대 (2009년 10월 ~ 2017년 3월)</option>
+            <option value="3">3세대 (2017년 4월 ~ 2021년 6월)</option>
+            <option value="4">4세대 (2021년 7월 이후)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="covered">급여 의료비 (원)</label>
+        <input type="number" id="covered" placeholder="예: 1000000" min="0">
+    </div>
+
+    <div class="form-group">
+        <label for="nonCovered">비급여 의료비 (원)</label>
+        <input type="number" id="nonCovered" placeholder="예: 500000" min="0">
+    </div>
+
+    <button onclick="calculateInsurance()">계산하기</button>
+
+    <div class="result-box" id="resultBox" style="display: none;">
+        <span>예상 보험금 수령액</span>
+        <div class="result-amount" id="resultAmount">0 원</div>
+        <span style="font-size: 12px; margin-top: 10px;">*입원비 기준 단순화된 산출금액으로 실제 지급액과 다를 수 있습니다.</span>
+    </div>
+</div>
+
+<script>
+    function calculateInsurance() {
+        const generation = document.getElementById('generation').value;
+        const coveredInput = document.getElementById('covered').value;
+        const nonCoveredInput = document.getElementById('nonCovered').value;
+
+        // 입력값이 없을 경우 0으로 처리
+        const covered = coveredInput ? parseInt(coveredInput) : 0;
+        const nonCovered = nonCoveredInput ? parseInt(nonCoveredInput) : 0;
+        
+        let payout = 0;
+
+        switch(generation) {
+            case "1":
+                // 1세대: 통상 자기부담금 없음 (100% 보장)
+                payout = covered + nonCovered;
+                break;
+            case "2":
+                // 2세대: 통상 자기부담금 10% (선택형 기준, 90% 보장)
+                payout = (covered + nonCovered) * 0.9;
+                break;
+            case "3":
+                // 3세대: 급여 10%, 비급여 20% 자기부담금 (입원 기준)
+                payout = (covered * 0.9) + (nonCovered * 0.8);
+                break;
+            case "4":
+                // 4세대: 급여 20%, 비급여 30% 자기부담금
+                payout = (covered * 0.8) + (nonCovered * 0.7);
+                break;
+            default:
+                payout = 0;
+        }
+
+        // 결과 화면 표시
+        const resultBox = document.getElementById('resultBox');
+        const resultAmount = document.getElementById('resultAmount');
+        
+        resultBox.style.display = 'block';
+        // 천 단위 콤마 추가
+        resultAmount.innerText = Math.floor(payout).toLocaleString('ko-KR') + " 원";
+    }
+</script>
+
+</body>
+</html>
