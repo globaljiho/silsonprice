@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>세대별 실손의료보험 계산기</title>
     <style>
         /* 폰트 및 기본 모바일 최적화 설정 */
@@ -25,6 +25,7 @@
             width: 100%;
             max-width: 450px;
             box-sizing: border-box;
+            position: relative;
         }
         h2 {
             text-align: center;
@@ -71,7 +72,23 @@
         input::placeholder {
             color: #b0b8c1;
         }
-        button {
+        .info-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #3182f6;
+            background-color: rgba(49, 130, 246, 0.1);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .info-btn:active {
+            background-color: rgba(49, 130, 246, 0.2);
+        }
+        .submit-btn {
             width: 100%;
             padding: 18px;
             background-color: #3182f6;
@@ -84,7 +101,7 @@
             margin-top: 10px;
             transition: background-color 0.2s;
         }
-        button:active {
+        .submit-btn:active {
             background-color: #1b64da;
         }
         .result-box {
@@ -114,6 +131,76 @@
             line-height: 1.5;
             word-break: keep-all;
         }
+
+        /* 모달창 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #191f28;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-body {
+            font-size: 14px;
+            color: #4e5968;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            word-break: keep-all;
+        }
+        .modal-body ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+        .modal-body li {
+            margin-bottom: 8px;
+        }
+        .modal-close-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #f2f4f6;
+            color: #4e5968;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .modal-close-btn:active {
+            background-color: #e5e8eb;
+        }
     </style>
 </head>
 <body>
@@ -129,6 +216,7 @@
             <option value="3">3세대 (2017년 4월 ~ 2021년 6월)</option>
             <option value="4">4세대 (2021년 7월 이후)</option>
         </select>
+        <button type="button" class="info-btn" onclick="openModal()">💡 선택한 세대 주의사항 보기</button>
     </div>
 
     <div class="form-group">
@@ -141,7 +229,7 @@
         <input type="number" id="nonCovered" placeholder="예: 500000" min="0" inputmode="numeric">
     </div>
 
-    <button onclick="calculateInsurance()">계산하기</button>
+    <button type="button" class="submit-btn" onclick="calculateInsurance()">계산하기</button>
 
     <div class="result-box" id="resultBox" style="display: none;">
         <span>예상 보험금 수령액</span>
@@ -150,13 +238,93 @@
     </div>
 </div>
 
+<!-- 세대별 주의사항 모달창 -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title" id="modalTitle">💡 1세대 실손 주의사항</div>
+        <div class="modal-body" id="modalBody">
+            내용이 들어갑니다.
+        </div>
+        <button class="modal-close-btn" onclick="closeModal()">닫기</button>
+    </div>
+</div>
+
 <script>
+    // 세대별 주의사항 데이터
+    const precautions = {
+        "1": {
+            title: "💡 1세대 (구실손) 주의사항",
+            content: `
+                <ul>
+                    <li>자기부담금이 없거나 매우 적어 보장 범위가 가장 넓습니다.</li>
+                    <li>하지만 갱신 주기가 3년~5년으로 길어, 갱신 시점에 <b>보험료가 한 번에 폭등</b>할 위험이 매우 큽니다.</li>
+                    <li>가입 시점에 따라 통원 한도(외래/처방조제)가 현재와 다를 수 있으니 증권을 꼭 확인하세요.</li>
+                </ul>`
+        },
+        "2": {
+            title: "💡 2세대 (표준화) 주의사항",
+            content: `
+                <ul>
+                    <li>10% 또는 20%의 자기부담금이 신설되었습니다.</li>
+                    <li>2013년 1월 이후 가입자는 <b>갱신 주기가 1년, 재가입 주기가 15년</b>으로 변경되었습니다.</li>
+                    <li>15년 만기 재가입 시점에 당시 판매 중인 실손보험 약관으로 변경될 수 있습니다.</li>
+                </ul>`
+        },
+        "3": {
+            title: "💡 3세대 (착한실손) 주의사항",
+            content: `
+                <ul>
+                    <li><b>3대 비급여 특약(도수치료, 주사료, 자기공명영상)</b>이 분리되어 별도의 한도와 횟수 제한(예: 도수치료 연 50회)이 적용됩니다.</li>
+                    <li>비급여 항목 청구 시 자기부담금이 20%로 높아졌습니다.</li>
+                    <li>보험료 자체는 1~2세대에 비해 저렴한 편입니다.</li>
+                </ul>`
+        },
+        "4": {
+            title: "💡 4세대 실손 주의사항",
+            content: `
+                <ul>
+                    <li><b>비급여 보험료 차등제</b>가 적용되어, 비급여 청구를 많이 하면 다음 해 보험료가 최대 300%까지 할증될 수 있습니다. (반대로 무청구 시 할인)</li>
+                    <li>자기부담금이 급여 20%, 비급여 30%로 가장 높습니다.</li>
+                    <li>재가입 주기가 5년으로 매우 짧아 약관 변동 주기가 빠릅니다.</li>
+                </ul>`
+        }
+    };
+
+    // 모달창 열기 함수
+    function openModal() {
+        const generation = document.getElementById('generation').value;
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+
+        modalTitle.innerText = precautions[generation].title;
+        modalBody.innerHTML = precautions[generation].content;
+        
+        modalOverlay.style.display = 'flex';
+        // 애니메이션 효과를 위해 약간의 딜레이 후 클래스 추가
+        setTimeout(() => {
+            modalOverlay.classList.add('show');
+        }, 10);
+    }
+
+    // 모달창 닫기 함수
+    function closeModal(event) {
+        // 백그라운드 클릭 또는 닫기 버튼 클릭 시 닫힘
+        const modalOverlay = document.getElementById('modalOverlay');
+        modalOverlay.classList.remove('show');
+        
+        // 트랜지션이 끝난 후 display: none 처리
+        setTimeout(() => {
+            modalOverlay.style.display = 'none';
+        }, 300);
+    }
+
+    // 보험금 산출 함수
     function calculateInsurance() {
         const generation = document.getElementById('generation').value;
         const coveredInput = document.getElementById('covered').value;
         const nonCoveredInput = document.getElementById('nonCovered').value;
 
-        // 입력값이 없을 경우 0으로 처리
         const covered = coveredInput ? parseInt(coveredInput) : 0;
         const nonCovered = nonCoveredInput ? parseInt(nonCoveredInput) : 0;
         
