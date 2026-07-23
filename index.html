@@ -34,6 +34,36 @@
             margin-top: 0;
             margin-bottom: 25px;
         }
+        
+        /* 입원/통원 토글 스위치 스타일 */
+        .toggle-wrapper {
+            display: flex;
+            background-color: #f2f4f6;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 25px;
+        }
+        .toggle-wrapper input[type="radio"] {
+            display: none;
+        }
+        .toggle-wrapper label {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #8b95a1;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            margin-bottom: 0;
+        }
+        .toggle-wrapper input[type="radio"]:checked + label {
+            background-color: #ffffff;
+            color: #3182f6;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -97,7 +127,7 @@
             background-color: #1b64da;
         }
         
-        /* 결과창 스타일 개선 */
+        /* 결과창 스타일 */
         .result-box {
             margin-top: 25px;
             padding: 25px 20px;
@@ -221,6 +251,14 @@
 
 <div class="calculator-container">
     <h2>실손보험 예상 수령액 계산기</h2>
+
+    <!-- 입원/통원 선택 토글 -->
+    <div class="toggle-wrapper">
+        <input type="radio" id="care_in" name="care_type" value="inpatient" checked onchange="updateFields()">
+        <label for="care_in">입원</label>
+        <input type="radio" id="care_out" name="care_type" value="outpatient" onchange="updateFields()">
+        <label for="care_out">통원 (외래)</label>
+    </div>
     
     <div class="form-group">
         <label for="generation">실손보험 세대 선택</label>
@@ -236,41 +274,39 @@
         <button type="button" class="info-btn" onclick="openModal()">💡 세대별 핵심 보장내용 보기</button>
     </div>
 
+    <div class="form-group" id="group_hospital_tier" style="display: none;">
+        <label id="tier_label" for="hospital_tier">병원 규모</label>
+        <select id="hospital_tier">
+            <option value="clinic">의원</option>
+            <option value="hospital">병원</option>
+            <option value="general">종합병원</option>
+            <option value="tertiary">상급종합병원</option>
+        </select>
+    </div>
+
     <div class="form-group">
         <label for="covered">급여 의료비 (원)</label>
-        <input type="number" id="covered" placeholder="예: 1000000" min="0" inputmode="numeric">
+        <input type="number" id="covered" placeholder="예: 100000" min="0" inputmode="numeric">
     </div>
 
-    <!-- 1~4세대를 위한 일반 비급여 -->
     <div class="form-group" id="group_general_non_covered">
         <label for="general_non_covered">일반 비급여 의료비 (원)</label>
-        <input type="number" id="general_non_covered" placeholder="예: 500000" min="0" inputmode="numeric">
+        <input type="number" id="general_non_covered" placeholder="예: 100000" min="0" inputmode="numeric">
     </div>
 
-    <!-- 3~5세대를 위한 3대 비급여 -->
     <div class="form-group" id="group_3_major" style="display: none;">
         <label for="major_3_non_covered">3대 비급여 (도수/체외충격파/주사/MRI) (원)</label>
         <input type="number" id="major_3_non_covered" placeholder="예: 300000" min="0" inputmode="numeric">
     </div>
 
-    <!-- 5세대를 위한 중증 비급여 -->
     <div class="form-group" id="group_severe_5g" style="display: none;">
         <label for="severe_5g">중증 비급여 (특약1) (원)</label>
-        <input type="number" id="severe_5g" placeholder="예: 1000000" min="0" inputmode="numeric">
+        <input type="number" id="severe_5g" placeholder="예: 100000" min="0" inputmode="numeric">
     </div>
 
-    <!-- 5세대를 위한 비중증 비급여 및 병원 종별 -->
     <div class="form-group" id="group_non_severe_5g" style="display: none;">
         <label for="non_severe_5g">비중증 비급여 (특약2) (원)</label>
-        <input type="number" id="non_severe_5g" placeholder="예: 500000" min="0" inputmode="numeric">
-        
-        <label for="hospital_tier" style="margin-top: 10px;">병원 종별 (비중증 비급여 공제용)</label>
-        <select id="hospital_tier">
-            <option value="clinic">의원 (자기부담 30%)</option>
-            <option value="hospital">병원 (자기부담 40%)</option>
-            <option value="general">종합병원 (자기부담 50%)</option>
-            <option value="tertiary">상급종합병원 (자기부담 60%)</option>
-        </select>
+        <input type="number" id="non_severe_5g" placeholder="예: 100000" min="0" inputmode="numeric">
     </div>
 
     <button type="button" class="submit-btn" onclick="calculateInsurance()">보험금 산출하기</button>
@@ -278,7 +314,6 @@
     <div class="result-box" id="resultBox" style="display: none;">
         <span>항목별 예상 수령액 상세</span>
         
-        <!-- 항목별 상세 내역 컨테이너 -->
         <div id="breakdownContainer" class="breakdown-container">
             <div class="breakdown-item" id="itemCovered">
                 <span class="label">급여:</span>
@@ -304,14 +339,12 @@
 
         <span>총 예상 수령액</span>
         <div class="result-amount" id="resultAmount">0 원</div>
-        <div class="disclaimer">
-            * 본 계산기는 입원 기준 공제율(약관 기준)을 적용한 단순화된 로직이며, 통원 공제금액 및 연간 한도 적용에 따라 실제 지급액과 다를 수 있습니다.<br>
-            * 2세대 및 3세대는 가입 비율이 압도적으로 높은 '선택형'을 기준으로 산출됩니다.
+        <div class="disclaimer" id="disclaimerText">
+            <!-- 자바스크립트에서 상황에 맞게 텍스트 주입 -->
         </div>
     </div>
 </div>
 
-<!-- 세대별 주의사항 모달창 -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-title" id="modalTitle"></div>
@@ -325,61 +358,57 @@
         "1": {
             title: "💡 1세대 실손 (~2009.7)",
             content: `<ul>
-                <li><b>자기부담금 없음:</b> 상해/질병 입원의료비 100% 보상 (3천만/5천만/1억 한도)</li>
-                <li><b>갱신주기:</b> 3년 또는 5년으로 갱신 시 보험료 인상폭이 클 수 있음</li>
-                <li><b>면책사항:</b> 치매, 디스크, 직장/항문질환 등은 기본적으로 보상하지 않음 (단, 치매는 가입시기 및 보험사별 상이)</li>
+                <li><b>자기부담금:</b> 입원 100% 보상 / 통원 5,000원 정액 공제</li>
+                <li><b>면책사항:</b> 치매, 디스크, 직장/항문질환 등 기본 보상 제외 (가입시기별 상이)</li>
             </ul>`
         },
         "2-1": {
             title: "💡 2세대 1차 (2009.8~2013.3)",
             content: `<ul>
-                <li><b>표준화 도입:</b> 전 보험사 보장내용 통일, 입원 5천만원 한도</li>
-                <li><b>자기부담금:</b> 10% 본인부담금 신설 (90% 보상)</li>
-                <li><b>갱신주기:</b> 3년 자동갱신</li>
+                <li><b>표준화 도입:</b> 입원 10% 본인부담금 신설</li>
+                <li><b>통원공제:</b> 의원 1만/병원 1.5만/종합 2만원 정액 공제</li>
             </ul>`
         },
         "2-2": {
             title: "💡 2세대 2차 (2013.4~2015.8)",
             content: `<ul>
-                <li><b>재가입 주기 신설:</b> 1년 갱신 / 15년 만기(재가입) 도입</li>
-                <li><b>자기부담금:</b> 대부분 가입한 <b>'선택형'</b> 기준 10% 공제</li>
+                <li><b>재가입주기:</b> 1년 갱신 / 15년 만기(재가입)</li>
+                <li><b>선택형 기준:</b> 입원 10% 공제 / 통원은 병원급 정액 공제 유지</li>
             </ul>`
         },
         "2-3": {
             title: "💡 2세대 3차 (2015.9~2017.3)",
             content: `<ul>
-                <li><b>자기부담금 인상:</b> 대부분 가입한 <b>'선택형'</b> 기준, 비급여 항목의 자기부담금이 20%로 인상됨 (급여 10% / 비급여 20%)</li>
+                <li><b>선택형 기준 인상:</b> 입원 급여 10%·비급여 20% 공제로 세분화</li>
+                <li><b>통원공제:</b> 정액공제와 (급여10%+비급여20%) 중 큰 금액 차감</li>
             </ul>`
         },
         "3": {
             title: "💡 3세대 실손 (2017.4~2021.6)",
             content: `<ul>
-                <li><b>3대 비급여 분리:</b> 도수치료, 비급여 주사, MRI가 특약으로 분리되며 자기부담금 30% 적용</li>
-                <li><b>자기부담금:</b> 기본 급여 10%, 기본 비급여 20% (선택형 기준)</li>
-                <li><b>할인제도:</b> 직전 2년간 비급여 청구 이력이 없으면 차기 1년간 보험료 10% 할인</li>
+                <li><b>3대 비급여 분리:</b> 도수, 비급여 주사, MRI 특약 분리 (30% 공제)</li>
+                <li><b>선택형 기준:</b> 기본 급여 10% / 기본 비급여 20% 공제</li>
             </ul>`
         },
         "4": {
             title: "💡 4세대 실손 (2021.7~2026.5)",
             content: `<ul>
-                <li><b>재가입 주기 단축:</b> 1년 갱신 / 5년 만기(재가입)</li>
-                <li><b>보험료 차등제:</b> 비급여 청구량에 따라 1~5등급으로 나뉘어 보험료 할증(최대 300%) 또는 할인</li>
-                <li><b>자기부담금 상향:</b> 급여 20%, 비급여 30% 기본 공제</li>
+                <li><b>보험료 차등제:</b> 비급여 청구량에 따라 할증/할인</li>
+                <li><b>자기부담금:</b> 급여 20% / 비급여 30% 기본 공제</li>
             </ul>`
         },
         "5": {
             title: "💡 5세대 실손 (2026.5.6~)",
             content: `<ul>
-                <li><b>비급여의 세분화:</b> 비급여를 '중증(특약1)'과 '비중증(특약2)'로 완전히 분리</li>
-                <li><b>자기부담금 차등:</b> 중증 비급여는 50% 공제, 비중증 비급여는 병원 규모에 따라 30%~60% 차등 공제</li>
-                <li>3대 비급여(도수,주사,MRI)는 30% 공제 적용</li>
-                <li><b>보장 확대:</b> 출생 전 가입 시 선천성 뇌질환, 습관성 유산 및 불임 관련 급여 보장 등 주계약 보장 확대</li>
+                <li><b>비급여 세분화:</b> 중증 50% 공제 / 비중증은 병원 규모별 30~60% 차등 공제 (입/통원 공통)</li>
+                <li><b>3대 비급여:</b> 30% 공제 유지</li>
             </ul>`
         }
     };
 
     function updateFields() {
         const gen = document.getElementById('generation').value;
+        const careType = document.querySelector('input[name="care_type"]:checked').value;
         
         // 입력 필드 초기화
         document.getElementById('group_general_non_covered').style.display = 'none';
@@ -393,7 +422,20 @@
         document.getElementById('itemSevere').style.display = 'none';
         document.getElementById('itemNonSevere').style.display = 'none';
 
-        // 세대별 입력 필드 & 결과 상세 항목 표시 로직
+        // 병원 규모 선택창 노출 로직 (통원이거나 5세대면 필수)
+        const tierGroup = document.getElementById('group_hospital_tier');
+        if (careType === 'outpatient' || gen === '5') {
+            tierGroup.style.display = 'block';
+            if (careType === 'outpatient') {
+                document.getElementById('tier_label').innerText = "병원 규모 (통원 공제 및 5세대 비급여 산출용)";
+            } else {
+                document.getElementById('tier_label').innerText = "병원 규모 (5세대 비중증 비급여 공제용)";
+            }
+        } else {
+            tierGroup.style.display = 'none';
+        }
+
+        // 세대별 입력 필드 노출 로직
         if (gen !== '5') {
             document.getElementById('group_general_non_covered').style.display = 'block';
             document.getElementById('itemGeneralNC').style.display = 'flex';
@@ -407,7 +449,6 @@
         if (gen === '5') {
             document.getElementById('group_severe_5g').style.display = 'block';
             document.getElementById('group_non_severe_5g').style.display = 'block';
-            
             document.getElementById('itemSevere').style.display = 'flex';
             document.getElementById('itemNonSevere').style.display = 'flex';
         }
@@ -431,6 +472,7 @@
 
     function calculateInsurance() {
         const gen = document.getElementById('generation').value;
+        const careType = document.querySelector('input[name="care_type"]:checked').value;
         const tier = document.getElementById('hospital_tier').value;
         
         const covered = Number(document.getElementById('covered').value) || 0;
@@ -439,60 +481,114 @@
         const severe_nc = Number(document.getElementById('severe_5g').value) || 0;
         const non_severe_nc = Number(document.getElementById('non_severe_5g').value) || 0;
 
-        let payoutCovered = 0;
-        let payoutGeneralNC = 0;
-        let payoutMajor3 = 0;
-        let payoutSevere = 0;
-        let payoutNonSevere = 0;
+        let payoutCovered = 0, payoutGeneralNC = 0, payoutMajor3 = 0, payoutSevere = 0, payoutNonSevere = 0;
 
-        if (gen === '1') {
-            payoutCovered = covered;
-            payoutGeneralNC = general_nc;
-        } 
-        else if (gen === '2-1' || gen === '2-2') {
-            payoutCovered = covered * 0.9;
-            payoutGeneralNC = general_nc * 0.9;
-        }
-        else if (gen === '2-3') {
-            payoutCovered = covered * 0.9;
-            payoutGeneralNC = general_nc * 0.8;
-        }
-        else if (gen === '3') {
-            payoutCovered = covered * 0.9;
-            payoutGeneralNC = general_nc * 0.8;
-            payoutMajor3 = major3_nc * 0.7;
-        }
-        else if (gen === '4') {
-            payoutCovered = covered * 0.8;
-            payoutGeneralNC = general_nc * 0.7;
-            payoutMajor3 = major3_nc * 0.7;
-        }
-        else if (gen === '5') {
-            let tierRate = 0.7; // 기본 의원(30% 공제 = 70% 보상)
-            if (tier === 'hospital') tierRate = 0.6;
-            else if (tier === 'general') tierRate = 0.5;
-            else if (tier === 'tertiary') tierRate = 0.4;
+        // 병원 규모별 통원 정액공제액 산출
+        let deductBasic = 10000;
+        if (tier === 'hospital') deductBasic = 15000;
+        else if (tier === 'general' || tier === 'tertiary') deductBasic = 20000;
+        
+        let deduct45Cov = (tier === 'general' || tier === 'tertiary') ? 20000 : 10000;
 
-            payoutCovered = covered * 0.8;
-            payoutSevere = severe_nc * 0.5;
-            payoutNonSevere = non_severe_nc * tierRate;
-            payoutMajor3 = major3_nc * 0.7;
+        // 5세대 비중증 공제율 (입/통원 공통 적용)
+        let tierRate5g = 0.3; // 의원 30%
+        if (tier === 'hospital') tierRate5g = 0.4;
+        else if (tier === 'general') tierRate5g = 0.5;
+        else if (tier === 'tertiary') tierRate5g = 0.6;
+
+        if (careType === 'inpatient') {
+            /* 입원 로직 */
+            if (gen === '1') {
+                payoutCovered = covered; payoutGeneralNC = general_nc;
+            } else if (gen === '2-1' || gen === '2-2') {
+                payoutCovered = covered * 0.9; payoutGeneralNC = general_nc * 0.9;
+            } else if (gen === '2-3') {
+                payoutCovered = covered * 0.9; payoutGeneralNC = general_nc * 0.8;
+            } else if (gen === '3') {
+                payoutCovered = covered * 0.9; payoutGeneralNC = general_nc * 0.8; payoutMajor3 = major3_nc * 0.7;
+            } else if (gen === '4') {
+                payoutCovered = covered * 0.8; payoutGeneralNC = general_nc * 0.7; payoutMajor3 = major3_nc * 0.7;
+            } else if (gen === '5') {
+                payoutCovered = covered * 0.8; 
+                payoutSevere = severe_nc * 0.5; 
+                payoutNonSevere = non_severe_nc * (1 - tierRate5g);
+                payoutMajor3 = major3_nc * 0.7;
+            }
+        } else {
+            /* 통원(외래) 로직 */
+            let totalBasic = covered + general_nc;
+            
+            if (gen === '1') {
+                // 1세대 통원: 통상 5천원 공제
+                let deduct = Math.max(0, 5000);
+                let propCov = totalBasic > 0 ? (covered / totalBasic) * deduct : 0;
+                let propGen = totalBasic > 0 ? (general_nc / totalBasic) * deduct : 0;
+                payoutCovered = Math.max(0, covered - propCov);
+                payoutGeneralNC = Math.max(0, general_nc - propGen);
+            } 
+            else if (gen === '2-1' || gen === '2-2') {
+                // 2세대 1차, 2차(선택형): 병원급별 1만/1.5만/2만 정액공제
+                let propCov = totalBasic > 0 ? (covered / totalBasic) * deductBasic : 0;
+                let propGen = totalBasic > 0 ? (general_nc / totalBasic) * deductBasic : 0;
+                payoutCovered = Math.max(0, covered - propCov);
+                payoutGeneralNC = Math.max(0, general_nc - propGen);
+            } 
+            else if (gen === '2-3') {
+                // 2세대 3차(선택형): Max(정액공제, 급여10%+비급여20%)
+                let ruleDeduct = (covered * 0.1) + (general_nc * 0.2);
+                let finalDeduct = Math.max(deductBasic, ruleDeduct);
+                let propCov = totalBasic > 0 ? (covered / totalBasic) * finalDeduct : 0;
+                let propGen = totalBasic > 0 ? (general_nc / totalBasic) * finalDeduct : 0;
+                payoutCovered = Math.max(0, covered - propCov);
+                payoutGeneralNC = Math.max(0, general_nc - propGen);
+            } 
+            else if (gen === '3') {
+                // 3세대(선택형): Max(정액공제, 급여10%+비급여20%) / 3대: Max(2만원, 30%)
+                let ruleDeduct = (covered * 0.1) + (general_nc * 0.2);
+                let finalDeduct = Math.max(deductBasic, ruleDeduct);
+                let propCov = totalBasic > 0 ? (covered / totalBasic) * finalDeduct : 0;
+                let propGen = totalBasic > 0 ? (general_nc / totalBasic) * finalDeduct : 0;
+                payoutCovered = Math.max(0, covered - propCov);
+                payoutGeneralNC = Math.max(0, general_nc - propGen);
+                
+                payoutMajor3 = Math.max(0, major3_nc - Math.max(20000, major3_nc * 0.3));
+            } 
+            else if (gen === '4') {
+                // 4세대: 급여 Max(정액, 20%) / 비급여 Max(3만, 30%) / 3대 Max(3만, 30%)
+                payoutCovered = Math.max(0, covered - Math.max(deduct45Cov, covered * 0.2));
+                payoutGeneralNC = Math.max(0, general_nc - Math.max(30000, general_nc * 0.3));
+                payoutMajor3 = Math.max(0, major3_nc - Math.max(30000, major3_nc * 0.3));
+            } 
+            else if (gen === '5') {
+                // 5세대: 급여 Max(정액, 20%) / 중증 Max(3만, 50%) / 비중증 Max(3만, 종별비율) / 3대 Max(3만, 30%)
+                payoutCovered = Math.max(0, covered - Math.max(deduct45Cov, covered * 0.2));
+                payoutSevere = Math.max(0, severe_nc - Math.max(30000, severe_nc * 0.5));
+                payoutNonSevere = Math.max(0, non_severe_nc - Math.max(30000, non_severe_nc * tierRate5g));
+                payoutMajor3 = Math.max(0, major3_nc - Math.max(30000, major3_nc * 0.3));
+            }
         }
 
         const totalPayout = payoutCovered + payoutGeneralNC + payoutMajor3 + payoutSevere + payoutNonSevere;
 
-        // UI 업데이트
+        // UI 텍스트 업데이트
         document.getElementById('valCovered').innerText = Math.floor(payoutCovered).toLocaleString('ko-KR') + " 원";
         document.getElementById('valGeneralNC').innerText = Math.floor(payoutGeneralNC).toLocaleString('ko-KR') + " 원";
         document.getElementById('valMajor3').innerText = Math.floor(payoutMajor3).toLocaleString('ko-KR') + " 원";
         document.getElementById('valSevere').innerText = Math.floor(payoutSevere).toLocaleString('ko-KR') + " 원";
         document.getElementById('valNonSevere').innerText = Math.floor(payoutNonSevere).toLocaleString('ko-KR') + " 원";
         
-        const resultBox = document.getElementById('resultBox');
-        const resultAmount = document.getElementById('resultAmount');
+        document.getElementById('resultAmount').innerText = Math.floor(totalPayout).toLocaleString('ko-KR') + " 원";
+
+        // 경고 메시지 동적 업데이트
+        let disclaimerHtml = "* 2세대 및 3세대는 가입 비율이 압도적으로 높은 <b>'선택형'</b>을 기준으로 산출됩니다.<br>";
+        if (careType === 'outpatient') {
+            disclaimerHtml += "<b>* 주의: 본 산출은 순수 공제율을 반영한 금액이며, 통원 1회당 적용되는 최대 한도(예: 20~30만원)를 초과하여 지급될 수 없습니다.</b>";
+        } else {
+            disclaimerHtml += "* 입원 기준 공제율(약관 기준)이 반영된 산출금액입니다.";
+        }
+        document.getElementById('disclaimerText').innerHTML = disclaimerHtml;
         
-        resultBox.style.display = 'block';
-        resultAmount.innerText = Math.floor(totalPayout).toLocaleString('ko-KR') + " 원";
+        document.getElementById('resultBox').style.display = 'block';
     }
 
     // 초기화면 렌더링 시 필드 세팅
