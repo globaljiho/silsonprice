@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>세대별 정밀 실손의료보험 계산기</title>
+    <title>종합 실손의료보험 계산기</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
@@ -35,6 +35,52 @@
             margin-bottom: 25px;
         }
         
+        /* 시작 화면 버튼 스타일 */
+        .selection-btn {
+            width: 100%;
+            padding: 20px;
+            margin-bottom: 15px;
+            background-color: #ffffff;
+            color: #3182f6;
+            border: 2px solid #3182f6;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .selection-btn:hover, .selection-btn:active {
+            background-color: #3182f6;
+            color: #ffffff;
+        }
+        .selection-btn span {
+            font-size: 13px;
+            font-weight: 500;
+            color: inherit;
+            opacity: 0.8;
+        }
+
+        /* 뒤로가기 버튼 */
+        .back-btn {
+            background: none;
+            border: none;
+            color: #8b95a1;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .back-btn:hover {
+            color: #4e5968;
+        }
+
         /* 입원/통원 토글 스위치 스타일 */
         .toggle-wrapper {
             display: flex;
@@ -99,7 +145,6 @@
             background-color: #ffffff;
         }
         
-        /* 3대 비급여 그룹 박스 스타일 */
         .sub-input-group {
             background-color: #fafafa;
             border: 1px solid #e5e8eb;
@@ -123,7 +168,6 @@
             background-color: #ffffff;
         }
 
-        /* 버튼 그룹 (보장내용 / 면책사항) */
         .btn-group-row {
             display: flex;
             gap: 10px;
@@ -171,7 +215,6 @@
             background-color: #1b64da;
         }
         
-        /* 결과창 스타일 */
         .result-box {
             margin-top: 25px;
             padding: 25px 20px;
@@ -223,7 +266,6 @@
             color: #3182f6;
             margin-bottom: 15px;
         }
-        /* 경고 문구 빨간색 강조 */
         .disclaimer {
             font-size: 12px;
             color: #e53e3e; 
@@ -236,7 +278,6 @@
             border-radius: 8px;
         }
         
-        /* 모달창 스타일 */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -299,10 +340,26 @@
 </head>
 <body>
 
-<div class="calculator-container">
-    <h2>실손보험 예상 수령액 계산기</h2>
+<!-- 1. 시작 화면 -->
+<div id="homeScreen" class="calculator-container">
+    <h2>어떤 실손보험을 계산할까요?</h2>
+    <div style="margin-top: 30px;">
+        <button class="selection-btn" onclick="startCalculator('general')">
+            일반 실손의료보험
+            <span>1세대 ~ 5세대 세부 계산</span>
+        </button>
+        <button class="selection-btn" onclick="startCalculator('sick')">
+            유병자 실손의료보험
+            <span>3.2.5 고지 유병자 전용 계산</span>
+        </button>
+    </div>
+</div>
 
-    <!-- 입원/통원 선택 토글 -->
+<!-- 2. 계산기 화면 -->
+<div id="calcScreen" class="calculator-container" style="display: none;">
+    <button class="back-btn" onclick="goHome()">← 뒤로 가기</button>
+    <h2 id="calcTitle">실손보험 예상 수령액 계산기</h2>
+
     <div class="toggle-wrapper">
         <input type="radio" id="care_in" name="care_type" value="inpatient" checked onchange="updateFields()">
         <label for="care_in">입원</label>
@@ -310,7 +367,8 @@
         <label for="care_out">통원 (외래)</label>
     </div>
     
-    <div class="form-group">
+    <!-- 일반 실손 전용: 세대 선택 -->
+    <div class="form-group" id="group_generation">
         <label for="generation">실손보험 세대 선택</label>
         <select id="generation" onchange="updateFields()">
             <option value="1">1세대 (2009년 7월 이전)</option>
@@ -322,13 +380,21 @@
             <option value="5">5세대 (2026년 5월 6일 이후)</option>
         </select>
         
-        <!-- 보장내용 / 면책사항 버튼 그룹 -->
         <div class="btn-group-row">
             <button type="button" class="info-btn coverage-btn" onclick="openModal('coverage')">💡 핵심 보장내용</button>
             <button type="button" class="info-btn exclusion-btn" onclick="openModal('exclusion')">🚫 면책사항 보기</button>
         </div>
     </div>
 
+    <!-- 유병자 실손 전용: 보장 안내 버튼 -->
+    <div class="form-group" id="group_sick_info" style="display: none;">
+        <div class="btn-group-row">
+            <button type="button" class="info-btn coverage-btn" onclick="openModal('sick_coverage')">💡 유병자 핵심 보장내용</button>
+            <button type="button" class="info-btn exclusion-btn" onclick="openModal('sick_exclusion')">🚫 유병자 면책사항</button>
+        </div>
+    </div>
+
+    <!-- 병원 규모 (일반 통원 및 5세대 전용) -->
     <div class="form-group" id="group_hospital_tier" style="display: none;">
         <label id="tier_label" for="hospital_tier">병원 규모</label>
         <select id="hospital_tier">
@@ -339,29 +405,29 @@
         </select>
     </div>
 
+    <!-- 공통: 의료비 입력 -->
     <div class="form-group">
-        <label for="covered">급여 의료비 (원)</label>
+        <label for="covered" id="label_covered">급여 의료비 (원)</label>
         <input type="number" id="covered" placeholder="예: 100000" min="0" inputmode="numeric">
     </div>
 
     <div class="form-group" id="group_general_non_covered">
-        <label for="general_non_covered">일반 비급여 의료비 (원)</label>
+        <label for="general_non_covered" id="label_non_covered">일반 비급여 의료비 (원)</label>
         <input type="number" id="general_non_covered" placeholder="예: 100000" min="0" inputmode="numeric">
     </div>
 
-    <!-- 5세대를 위한 중증 비급여 -->
+    <!-- 5세대 전용 입력 -->
     <div class="form-group" id="group_severe_5g" style="display: none;">
         <label for="severe_5g">중증 비급여 (특약1) (원)</label>
         <input type="number" id="severe_5g" placeholder="예: 100000" min="0" inputmode="numeric">
     </div>
 
-    <!-- 5세대를 위한 비중증 비급여 -->
     <div class="form-group" id="group_non_severe_5g" style="display: none;">
         <label for="non_severe_5g">비중증 비급여 (특약2) (원)</label>
         <input type="number" id="non_severe_5g" placeholder="예: 100000" min="0" inputmode="numeric">
     </div>
 
-    <!-- 3~5세대를 위한 3대 비급여 (분리 입력) -->
+    <!-- 3~5세대 일반 실손 전용 3대 비급여 -->
     <div class="form-group" id="group_3_major" style="display: none;">
         <label>3대 비급여 의료비 상세 (특약)</label>
         <div class="sub-input-group">
@@ -386,12 +452,13 @@
         <span>항목별 예상 수령액 상세</span>
         
         <div id="breakdownContainer" class="breakdown-container">
+            <!-- 일반실손 상세 -->
             <div class="breakdown-item" id="itemCovered">
-                <span class="label">급여:</span>
+                <span class="label" id="resLabelCovered">급여:</span>
                 <span class="value" id="valCovered">0 원</span>
             </div>
             <div class="breakdown-item" id="itemGeneralNC">
-                <span class="label">일반 비급여:</span>
+                <span class="label" id="resLabelNC">일반 비급여:</span>
                 <span class="value" id="valGeneralNC">0 원</span>
             </div>
             <div class="breakdown-item" id="itemSevere" style="display: none;">
@@ -403,17 +470,17 @@
                 <span class="value" id="valNonSevere">0 원</span>
             </div>
 
-            <!-- 3대 비급여 결과 상세 -->
+            <!-- 3대 비급여 상세 -->
             <div class="breakdown-item" id="itemMajor3Header" style="display: none; margin-top: 10px;">
                 <span class="label" style="color: #3182f6;">3대 비급여 합산:</span>
                 <span class="value" id="valMajor3Total" style="color: #3182f6;">0 원</span>
             </div>
             <div class="breakdown-item sub-item" id="itemMajor3Manual" style="display: none;">
-                <span class="label">└ 도수/체외충격파:</span>
+                <span class="label">└ 도수/체외:</span>
                 <span class="value" id="valMajor3Manual">0 원</span>
             </div>
             <div class="breakdown-item sub-item" id="itemMajor3Injection" style="display: none;">
-                <span class="label">└ 비급여 주사료:</span>
+                <span class="label">└ 비급여 주사:</span>
                 <span class="value" id="valMajor3Injection">0 원</span>
             </div>
             <div class="breakdown-item sub-item" id="itemMajor3MRI" style="display: none;">
@@ -425,7 +492,7 @@
         <span>총 예상 수령액</span>
         <div class="result-amount" id="resultAmount">0 원</div>
         <div class="disclaimer" id="disclaimerText">
-            <!-- 자바스크립트에서 상황에 맞게 텍스트 주입 -->
+            <!-- 자바스크립트 주입 -->
         </div>
     </div>
 </div>
@@ -439,127 +506,102 @@
 </div>
 
 <script>
+    let currentMode = 'general'; // 'general' or 'sick'
+
+    // --- 데이터 정의 구역 --- //
     const coverageInfo = {
-        "1": {
-            title: "💡 1세대 실손 보장내용 (~2009.7)",
-            content: `<ul>
-                <li><b>자기부담금:</b> 입원 100% 보상 / 통원 5,000원 정액 공제</li>
-                <li><b>면책사항:</b> 치매, 디스크, 직장/항문질환 등 기본 보상 제외 (가입시기별 상이)</li>
-            </ul>`
-        },
-        "2-1": {
-            title: "💡 2세대 1차 보장내용 (2009.8~2013.3)",
-            content: `<ul>
-                <li><b>표준화 도입:</b> 입원 10% 본인부담금 신설</li>
-                <li><b>통원공제:</b> 의원 1만/병원 1.5만/종합 2만원 정액 공제</li>
-            </ul>`
-        },
-        "2-2": {
-            title: "💡 2세대 2차 보장내용 (2013.4~2015.8)",
-            content: `<ul>
-                <li><b>재가입주기:</b> 1년 갱신 / 15년 만기(재가입)</li>
-                <li><b>선택형 기준:</b> 입원 10% 공제 / 통원은 병원급 정액 공제 유지</li>
-            </ul>`
-        },
-        "2-3": {
-            title: "💡 2세대 3차 보장내용 (2015.9~2017.3)",
-            content: `<ul>
-                <li><b>선택형 기준 인상:</b> 입원 급여 10%·비급여 20% 공제로 세분화</li>
-                <li><b>통원공제:</b> 정액공제와 (급여10%+비급여20%) 중 큰 금액 차감</li>
-            </ul>`
-        },
-        "3": {
-            title: "💡 3세대 실손 보장내용 (2017.4~2021.6)",
-            content: `<ul>
-                <li><b>3대 비급여 분리:</b> 도수, 비급여 주사, MRI 특약 분리 (30% 공제)</li>
-                <li><b>선택형 기준:</b> 기본 급여 10% / 기본 비급여 20% 공제</li>
-            </ul>`
-        },
-        "4": {
-            title: "💡 4세대 실손 보장내용 (2021.7~2026.5)",
-            content: `<ul>
-                <li><b>보험료 차등제:</b> 비급여 청구량에 따라 할증/할인</li>
-                <li><b>자기부담금:</b> 급여 20% / 비급여 30% 기본 공제</li>
-            </ul>`
-        },
-        "5": {
-            title: "💡 5세대 실손 보장내용 (2026.5.6~)",
-            content: `<ul>
-                <li><b>비급여 세분화:</b> 중증 50% 공제 / 비중증은 병원 규모별 30~60% 차등 공제 (입/통원 공통)</li>
-                <li><b>3대 비급여:</b> 30% 공제 유지</li>
-            </ul>`
-        }
+        "1": { title: "💡 1세대 실손 보장내용 (~2009.7)", content: `<ul><li><b>자기부담금:</b> 입원 100% 보상 / 통원 5,000원 정액 공제</li></ul>` },
+        "2-1": { title: "💡 2세대 1차 보장내용 (2009.8~2013.3)", content: `<ul><li><b>자기부담금:</b> 입원 10% 본인부담금 신설</li><li><b>통원공제:</b> 의원 1만/병원 1.5만/종합 2만원 정액 공제</li></ul>` },
+        "2-2": { title: "💡 2세대 2차 보장내용 (2013.4~2015.8)", content: `<ul><li><b>재가입주기:</b> 15년 만기(재가입) 도입</li><li><b>선택형 기준:</b> 입원 10% 공제 / 통원 병원급 정액 공제</li></ul>` },
+        "2-3": { title: "💡 2세대 3차 보장내용 (2015.9~2017.3)", content: `<ul><li><b>선택형 기준 인상:</b> 급여 10%·비급여 20% 공제로 세분화</li><li><b>통원공제:</b> 정액공제와 (급여10%+비급여20%) 중 큰 금액 차감</li></ul>` },
+        "3": { title: "💡 3세대 실손 보장내용 (2017.4~2021.6)", content: `<ul><li><b>3대 비급여 특약 분리:</b> 30% 공제</li><li><b>선택형 기준:</b> 기본 급여 10% / 기본 비급여 20% 공제</li></ul>` },
+        "4": { title: "💡 4세대 실손 보장내용 (2021.7~2026.5)", content: `<ul><li><b>보험료 차등제:</b> 비급여 청구량에 따라 할증/할인</li><li><b>자기부담금:</b> 급여 20% / 비급여 30% 기본 공제</li></ul>` },
+        "5": { title: "💡 5세대 실손 보장내용 (2026.5.6~)", content: `<ul><li><b>비급여 세분화:</b> 중증 50% 공제 / 비중증은 병원 규모별 30~60% 차등 공제</li></ul>` }
     };
 
     const exclusionInfo = {
-        "1": {
-            title: "🚫 1세대 실손 면책사항 (~2009.7)",
+        "1": { title: "🚫 1세대 실손 면책사항 (~2009.7)", content: `<ul><li>정신질환(F04-F99) 보상 불가 (치매 제외).</li><li>치과, 한방치료, 임신/출산(O00-O99), 치핵 등 항문질환 보상 제외.</li></ul>` },
+        "2-1": { title: "🚫 2세대 1차 면책사항", content: `<ul><li>정신과질환 보상 불가. 치과/한방 비급여 제외.</li><li>임신/출산, 비뇨기계, 직장/항문 비급여 제외.</li></ul>` },
+        "2-2": { title: "🚫 2세대 2차 면책사항", content: `<ul><li>2세대 1차와 동일.</li></ul>` },
+        "2-3": { title: "🚫 2세대 3차 면책사항", content: `<ul><li>치과/한방 비급여 제외.</li><li>일부 정신과 질환(우울증 등) 급여 부분 면책 해제(보상).</li></ul>` },
+        "3": { title: "🚫 3세대 실손 면책사항", content: `<ul><li>외모개선 목적 치료 명확히 제외.</li><li>3대 비급여 횟수 초과 시 면책.</li></ul>` },
+        "4": { title: "🚫 4세대 실손 면책사항", content: `<ul><li>도수치료 10회마다 객관적 검사결과 미제출 시 면책.</li><li>주사치료는 식약처 허가사항 투여 시만 보장.</li></ul>` },
+        "5": { title: "🚫 5세대 실손 면책사항", content: `<ul><li>3대 비급여 도수/체외 연간 100회 한도 초과 시 면책.</li><li>임신/출산/산후기는 분만예정일 280일 이전 가입 시 면책 해제(보장).</li></ul>` }
+    };
+
+    const sickInfo = {
+        coverage: {
+            title: "💡 유병자 실손 (3.2.5 고지) 보장내용",
             content: `<ul>
-                <li>정신질환 및 행동장애(F04-F99)는 보상하지 않습니다 (단, 치매 F00-F03은 보험사별 상이하게 보상).</li>
-                <li>치과질환, 한방치료, 임신 및 출산(O00-O99), 성병(A50-A64)은 보상에서 제외됩니다.</li>
-                <li>치핵, 요실금 등 비뇨기계 장애 및 직장/항문 질환(I84, K60-K62, N39)은 보상하지 않습니다.</li>
+                <li><b>입원 보장:</b> 10만 원과 의료비의 30% 중 큰 금액 공제 (5천만 원 한도)</li>
+                <li><b>통원 보장:</b> 2만 원과 의료비의 30% 중 큰 금액 공제 (회당 20만 원 한도)</li>
+                <li><b>통원 처방조제비:</b> 기본적으로 보상하지 않습니다.</li>
             </ul>`
         },
-        "2-1": {
-            title: "🚫 2세대 1차 면책사항 (2009.8~2013.3)",
+        exclusion: {
+            title: "🚫 유병자 실손 (3.2.5 고지) 면책사항",
             content: `<ul>
-                <li>정신과질환 및 행동장애(F04-F99)는 보상하지 않습니다 (치매 F00-F03은 보상).</li>
-                <li>치과치료, 한방치료의 비급여 부분은 보상에서 제외됩니다.</li>
-                <li>여성생식기 비염증성 장애(N96-N98), 임신, 출산 및 산후기(O00-O99), 선천성 뇌질환(Q00-Q04) 보상 제외.</li>
-                <li>비뇨기계 장애(N39, R32) 및 직장/항문질환(I84, K60-K62)의 비급여 부분 보상 제외.</li>
-            </ul>`
-        },
-        "2-2": {
-            title: "🚫 2세대 2차 면책사항 (2013.4~2015.8)",
-            content: `<ul>
-                <li>2세대 1차와 동일하게 정신과질환(F04-F99), 치과/한방치료 비급여는 보상하지 않습니다.</li>
-                <li>임신, 출산 및 산후기(O00-O99), 비뇨기계 장애 비급여(N39, R32) 등 면책 유지.</li>
-            </ul>`
-        },
-        "2-3": {
-            title: "🚫 2세대 3차 면책사항 (2015.9~2017.3)",
-            content: `<ul>
-                <li>치과치료, 한방치료 비급여 부분은 보상에서 계속 제외됩니다.</li>
-                <li><b>보장 확대:</b> 기존에 면책이던 일부 정신과 질환(우울증, 조현병 등 F04-F09, F20-F29 등)의 '급여' 부분은 면책에서 제외되어 보상 개시되었습니다.</li>
-            </ul>`
-        },
-        "3": {
-            title: "🚫 3세대 실손 면책사항 (2017.4~2021.6)",
-            content: `<ul>
-                <li>외모개선 목적의 치료(지방흡입 등)는 명확히 보상에서 제외됩니다.</li>
-                <li>분리된 3대 비급여(도수, 주사, MRI)는 횟수 제한(예: 도수치료 연 50회) 초과 시 면책됩니다.</li>
-                <li>치과/한방 비급여 및 임신/출산 관련(O00-O99) 면책은 기존 세대와 동일하게 유지됩니다.</li>
-            </ul>`
-        },
-        "4": {
-            title: "🚫 4세대 실손 면책사항 (2021.7~2026.5)",
-            content: `<ul>
-                <li>비급여 도수치료는 10회 치료받을 때마다 객관적 검사 결과 제출 시에만(최대 50회) 보장되며, 미제출 시 면책됩니다.</li>
-                <li>비급여 주사치료는 약사법령에 의한 허가사항/신고된 사항에 따라 투여된 경우에만 보장됩니다(단순 영양제 등 면책).</li>
-                <li><b>보장 확대:</b> 피부질환(여드름 등) 치료 목적 시 급여 보장, 태아 가입 시 선천성 뇌질환(Q00-Q04) 면책 해제.</li>
-            </ul>`
-        },
-        "5": {
-            title: "🚫 5세대 실손 면책사항 (2026.5.6 이후)",
-            content: `<ul>
-                <li>특약1(중증 비급여) 의료과잉 방지: 3대 비급여 도수/체외충격파 연간 100회 한도 등 초과 시 면책 적용.</li>
-                <li><b>면책 대폭 해제:</b> 임신, 출산, 산후기(O00~O99)는 분만예정일 280일 이전 가입 시 면책 해제(보장됨).</li>
-                <li>습관성 유산 등(N96~N98) 가입 2년 후 급여 보장, 정신발달장애(F80-F89) 태아 가입 시 18세까지 보장.</li>
+                <li><b>3대 비급여 제외:</b> 도수치료, 비급여 주사료, 비급여 자기공명영상진단(MRI) 특약은 운영하지 않으며 보상 제외됩니다.</li>
+                <li>외래(통원) 시 약국 처방조제비는 보상에서 제외됩니다.</li>
+                <li>기타 일반 실손에서 보장하지 않는 치과 비급여, 한방 비급여 등은 동일하게 면책됩니다.</li>
             </ul>`
         }
     };
 
-    function updateFields() {
-        const gen = document.getElementById('generation').value;
-        const careType = document.querySelector('input[name="care_type"]:checked').value;
+    // --- UI 네비게이션 구역 --- //
+    function startCalculator(mode) {
+        currentMode = mode;
+        document.getElementById('homeScreen').style.display = 'none';
+        document.getElementById('calcScreen').style.display = 'block';
         
-        // 입력 필드 초기화
+        // 입력 필드 리셋
+        document.getElementById('covered').value = '';
+        document.getElementById('general_non_covered').value = '';
+        document.getElementById('major3_manual').value = '';
+        document.getElementById('major3_injection').value = '';
+        document.getElementById('major3_mri').value = '';
+        document.getElementById('severe_5g').value = '';
+        document.getElementById('non_severe_5g').value = '';
+        document.getElementById('resultBox').style.display = 'none';
+
+        if(mode === 'general') {
+            document.getElementById('calcTitle').innerText = '일반 실손보험 예상 수령액 계산기';
+            document.getElementById('group_generation').style.display = 'block';
+            document.getElementById('group_sick_info').style.display = 'none';
+            document.getElementById('label_covered').innerText = '급여 의료비 (원)';
+            document.getElementById('label_non_covered').innerText = '일반 비급여 의료비 (원)';
+            document.getElementById('resLabelCovered').innerText = '급여:';
+            document.getElementById('resLabelNC').innerText = '비급여:';
+        } else {
+            document.getElementById('calcTitle').innerText = '유병자 실손보험 예상 수령액 계산기';
+            document.getElementById('group_generation').style.display = 'none';
+            document.getElementById('group_sick_info').style.display = 'block';
+            
+            // 유병자는 급여/비급여 합산 처리하므로 라벨을 심플하게
+            document.getElementById('label_covered').innerText = '의료비 총액 (원)';
+            document.getElementById('label_non_covered').innerText = '비급여 의료비 (선택사항, 합산용)';
+            document.getElementById('resLabelCovered').innerText = '의료비 보상액:';
+            document.getElementById('resLabelNC').innerText = '비급여 보상액:';
+        }
+        updateFields();
+    }
+
+    function goHome() {
+        document.getElementById('calcScreen').style.display = 'none';
+        document.getElementById('homeScreen').style.display = 'block';
+    }
+
+    // --- 동적 필드 업데이트 구역 --- //
+    function updateFields() {
+        const careType = document.querySelector('input[name="care_type"]:checked').value;
+        const tierGroup = document.getElementById('group_hospital_tier');
+
+        // 필드 전체 가리기
         document.getElementById('group_general_non_covered').style.display = 'none';
         document.getElementById('group_3_major').style.display = 'none';
         document.getElementById('group_severe_5g').style.display = 'none';
         document.getElementById('group_non_severe_5g').style.display = 'none';
-
-        // 결과 상세 항목 초기화
+        
         document.getElementById('itemGeneralNC').style.display = 'none';
         document.getElementById('itemSevere').style.display = 'none';
         document.getElementById('itemNonSevere').style.display = 'none';
@@ -567,45 +609,53 @@
         document.getElementById('itemMajor3Manual').style.display = 'none';
         document.getElementById('itemMajor3Injection').style.display = 'none';
         document.getElementById('itemMajor3MRI').style.display = 'none';
+        tierGroup.style.display = 'none';
 
-        // 병원 규모 선택창 노출 로직
-        const tierGroup = document.getElementById('group_hospital_tier');
-        if (careType === 'outpatient' || gen === '5') {
-            tierGroup.style.display = 'block';
-            if (careType === 'outpatient') {
-                document.getElementById('tier_label').innerText = "병원 규모 (통원 공제 및 5세대 비급여 산출용)";
-            } else {
-                document.getElementById('tier_label').innerText = "병원 규모 (5세대 비중증 비급여 공제용)";
+        if (currentMode === 'general') {
+            const gen = document.getElementById('generation').value;
+            
+            if (careType === 'outpatient' || gen === '5') {
+                tierGroup.style.display = 'block';
+                document.getElementById('tier_label').innerText = careType === 'outpatient' 
+                    ? "병원 규모 (통원 공제 및 5세대 비급여 산출용)" 
+                    : "병원 규모 (5세대 비중증 비급여 공제용)";
+            }
+
+            if (gen !== '5') {
+                document.getElementById('group_general_non_covered').style.display = 'block';
+                document.getElementById('itemGeneralNC').style.display = 'flex';
+            }
+
+            if (gen === '3' || gen === '4' || gen === '5') {
+                document.getElementById('group_3_major').style.display = 'block';
+                document.getElementById('itemMajor3Header').style.display = 'flex';
+                document.getElementById('itemMajor3Manual').style.display = 'flex';
+                document.getElementById('itemMajor3Injection').style.display = 'flex';
+                document.getElementById('itemMajor3MRI').style.display = 'flex';
+            }
+
+            if (gen === '5') {
+                document.getElementById('group_severe_5g').style.display = 'block';
+                document.getElementById('group_non_severe_5g').style.display = 'block';
+                document.getElementById('itemSevere').style.display = 'flex';
+                document.getElementById('itemNonSevere').style.display = 'flex';
             }
         } else {
-            tierGroup.style.display = 'none';
-        }
-
-        // 세대별 입력 필드 노출
-        if (gen !== '5') {
+            // 유병자 모드
+            // 병원규모 불필요(정액공제 2만원 고정), 3대비급여/5세대특약 불필요
             document.getElementById('group_general_non_covered').style.display = 'block';
-            document.getElementById('itemGeneralNC').style.display = 'flex';
-        }
-
-        if (gen === '3' || gen === '4' || gen === '5') {
-            document.getElementById('group_3_major').style.display = 'block';
-            document.getElementById('itemMajor3Header').style.display = 'flex';
-            document.getElementById('itemMajor3Manual').style.display = 'flex';
-            document.getElementById('itemMajor3Injection').style.display = 'flex';
-            document.getElementById('itemMajor3MRI').style.display = 'flex';
-        }
-
-        if (gen === '5') {
-            document.getElementById('group_severe_5g').style.display = 'block';
-            document.getElementById('group_non_severe_5g').style.display = 'block';
-            document.getElementById('itemSevere').style.display = 'flex';
-            document.getElementById('itemNonSevere').style.display = 'flex';
         }
     }
 
+    // --- 모달 구역 --- //
     function openModal(type) {
-        const gen = document.getElementById('generation').value;
-        let data = type === 'coverage' ? coverageInfo[gen] : exclusionInfo[gen];
+        let data = {};
+        if (currentMode === 'general') {
+            const gen = document.getElementById('generation').value;
+            data = type === 'coverage' ? coverageInfo[gen] : exclusionInfo[gen];
+        } else {
+            data = type === 'sick_coverage' ? sickInfo.coverage : sickInfo.exclusion;
+        }
         
         document.getElementById('modalTitle').innerText = data.title;
         document.getElementById('modalBody').innerHTML = data.content;
@@ -621,7 +671,16 @@
         setTimeout(() => { modal.style.display = 'none'; }, 300);
     }
 
+    // --- 계산 로직 구역 --- //
     function calculateInsurance() {
+        if (currentMode === 'general') {
+            calculateGeneral();
+        } else {
+            calculateSick();
+        }
+    }
+
+    function calculateGeneral() {
         const gen = document.getElementById('generation').value;
         const careType = document.querySelector('input[name="care_type"]:checked').value;
         const tier = document.getElementById('hospital_tier').value;
@@ -631,7 +690,6 @@
         const severe_nc = Number(document.getElementById('severe_5g').value) || 0;
         const non_severe_nc = Number(document.getElementById('non_severe_5g').value) || 0;
 
-        // 3대 비급여 상세 입력값
         const m3_manual = Number(document.getElementById('major3_manual').value) || 0;
         const m3_injection = Number(document.getElementById('major3_injection').value) || 0;
         const m3_mri = Number(document.getElementById('major3_mri').value) || 0;
@@ -639,19 +697,16 @@
         let payoutCovered = 0, payoutGeneralNC = 0, payoutSevere = 0, payoutNonSevere = 0;
         let payoutM3Manual = 0, payoutM3Injection = 0, payoutM3MRI = 0;
 
-        // 통원 기본공제
         let deductBasic = 10000;
         if (tier === 'hospital') deductBasic = 15000;
         else if (tier === 'general' || tier === 'tertiary') deductBasic = 20000;
         let deduct45Cov = (tier === 'general' || tier === 'tertiary') ? 20000 : 10000;
 
-        // 5세대 비중증 공제율
         let tierRate5g = 0.3; 
         if (tier === 'hospital') tierRate5g = 0.4;
         else if (tier === 'general') tierRate5g = 0.5;
         else if (tier === 'tertiary') tierRate5g = 0.6;
 
-        // 3대 비급여 공제 로직 (특약: 입/통원 구분 없이 동일 규정 적용)
         if (gen === '3') {
             if(m3_manual > 0) payoutM3Manual = Math.max(0, m3_manual - Math.max(20000, m3_manual * 0.3));
             if(m3_injection > 0) payoutM3Injection = Math.max(0, m3_injection - Math.max(20000, m3_injection * 0.3));
@@ -680,33 +735,21 @@
             }
         } else {
             let totalBasic = covered + general_nc;
-            
             if (gen === '1') {
                 let deduct = Math.max(0, 5000);
-                let propCov = totalBasic > 0 ? (covered / totalBasic) * deduct : 0;
-                let propGen = totalBasic > 0 ? (general_nc / totalBasic) * deduct : 0;
-                payoutCovered = Math.max(0, covered - propCov);
-                payoutGeneralNC = Math.max(0, general_nc - propGen);
-            } 
-            else if (gen === '2-1' || gen === '2-2') {
-                let propCov = totalBasic > 0 ? (covered / totalBasic) * deductBasic : 0;
-                let propGen = totalBasic > 0 ? (general_nc / totalBasic) * deductBasic : 0;
-                payoutCovered = Math.max(0, covered - propCov);
-                payoutGeneralNC = Math.max(0, general_nc - propGen);
-            } 
-            else if (gen === '2-3' || gen === '3') {
-                let ruleDeduct = (covered * 0.1) + (general_nc * 0.2);
-                let finalDeduct = Math.max(deductBasic, ruleDeduct);
-                let propCov = totalBasic > 0 ? (covered / totalBasic) * finalDeduct : 0;
-                let propGen = totalBasic > 0 ? (general_nc / totalBasic) * finalDeduct : 0;
-                payoutCovered = Math.max(0, covered - propCov);
-                payoutGeneralNC = Math.max(0, general_nc - propGen);
-            } 
-            else if (gen === '4') {
+                payoutCovered = Math.max(0, covered - (totalBasic > 0 ? (covered/totalBasic)*deduct : 0));
+                payoutGeneralNC = Math.max(0, general_nc - (totalBasic > 0 ? (general_nc/totalBasic)*deduct : 0));
+            } else if (gen === '2-1' || gen === '2-2') {
+                payoutCovered = Math.max(0, covered - (totalBasic > 0 ? (covered/totalBasic)*deductBasic : 0));
+                payoutGeneralNC = Math.max(0, general_nc - (totalBasic > 0 ? (general_nc/totalBasic)*deductBasic : 0));
+            } else if (gen === '2-3' || gen === '3') {
+                let finalDeduct = Math.max(deductBasic, (covered * 0.1) + (general_nc * 0.2));
+                payoutCovered = Math.max(0, covered - (totalBasic > 0 ? (covered/totalBasic)*finalDeduct : 0));
+                payoutGeneralNC = Math.max(0, general_nc - (totalBasic > 0 ? (general_nc/totalBasic)*finalDeduct : 0));
+            } else if (gen === '4') {
                 payoutCovered = Math.max(0, covered - Math.max(deduct45Cov, covered * 0.2));
                 payoutGeneralNC = Math.max(0, general_nc - Math.max(30000, general_nc * 0.3));
-            } 
-            else if (gen === '5') {
+            } else if (gen === '5') {
                 payoutCovered = Math.max(0, covered - Math.max(deduct45Cov, covered * 0.2));
                 payoutSevere = Math.max(0, severe_nc - Math.max(30000, severe_nc * 0.5));
                 payoutNonSevere = Math.max(0, non_severe_nc - Math.max(30000, non_severe_nc * tierRate5g));
@@ -716,33 +759,72 @@
         const payoutMajor3Total = payoutM3Manual + payoutM3Injection + payoutM3MRI;
         const totalPayout = payoutCovered + payoutGeneralNC + payoutMajor3Total + payoutSevere + payoutNonSevere;
 
-        // UI 업데이트
-        document.getElementById('valCovered').innerText = Math.floor(payoutCovered).toLocaleString('ko-KR') + " 원";
-        document.getElementById('valGeneralNC').innerText = Math.floor(payoutGeneralNC).toLocaleString('ko-KR') + " 원";
-        document.getElementById('valSevere').innerText = Math.floor(payoutSevere).toLocaleString('ko-KR') + " 원";
-        document.getElementById('valNonSevere').innerText = Math.floor(payoutNonSevere).toLocaleString('ko-KR') + " 원";
+        renderResults(totalPayout, payoutCovered, payoutGeneralNC, payoutMajor3Total, payoutM3Manual, payoutM3Injection, payoutM3MRI, payoutSevere, payoutNonSevere);
         
-        document.getElementById('valMajor3Total').innerText = Math.floor(payoutMajor3Total).toLocaleString('ko-KR') + " 원";
-        document.getElementById('valMajor3Manual').innerText = Math.floor(payoutM3Manual).toLocaleString('ko-KR') + " 원";
-        document.getElementById('valMajor3Injection').innerText = Math.floor(payoutM3Injection).toLocaleString('ko-KR') + " 원";
-        document.getElementById('valMajor3MRI').innerText = Math.floor(payoutM3MRI).toLocaleString('ko-KR') + " 원";
-        
-        document.getElementById('resultAmount').innerText = Math.floor(totalPayout).toLocaleString('ko-KR') + " 원";
-
-        // 경고 메시지
         let disclaimerHtml = "* 2세대 및 3세대는 가입 비율이 압도적으로 높은 <b>'선택형'</b>을 기준으로 산출됩니다.<br>";
-        disclaimerHtml += "* 3대 비급여 연간 한도: 도수/체외 350만, 주사 250만, MRI 300만 원 적용<br>";
         if (careType === 'outpatient') {
             disclaimerHtml += "<b>* 주의: 통원 1회당 적용되는 최대 한도(예: 20~30만 원)를 초과하여 지급될 수 없습니다.</b>";
         } else {
             disclaimerHtml += "* 입원 기준 공제율(약관 기준)이 반영된 산출금액입니다.";
         }
         document.getElementById('disclaimerText').innerHTML = disclaimerHtml;
-        
-        document.getElementById('resultBox').style.display = 'block';
     }
 
-    window.onload = updateFields;
+    function calculateSick() {
+        const careType = document.querySelector('input[name="care_type"]:checked').value;
+        const covered = Number(document.getElementById('covered').value) || 0;
+        const nonCovered = Number(document.getElementById('general_non_covered').value) || 0;
+        
+        const totalMedical = covered + nonCovered;
+        let payout = 0;
+
+        if (careType === 'inpatient') {
+            // 유병자 입원: Max(10만원, 30%)
+            let deduct = Math.max(100000, totalMedical * 0.3);
+            payout = Math.max(0, totalMedical - deduct);
+        } else {
+            // 유병자 외래: Max(2만원, 30%)
+            let deduct = Math.max(20000, totalMedical * 0.3);
+            payout = Math.max(0, totalMedical - deduct);
+        }
+
+        // 결과를 뭉뚱그려 급여란에 띄우기 (실제론 총합)
+        let propCov = totalMedical > 0 ? (covered / totalMedical) * payout : 0;
+        let propNon = totalMedical > 0 ? (nonCovered / totalMedical) * payout : 0;
+
+        renderResults(payout, propCov, propNon, 0, 0, 0, 0, 0, 0);
+
+        let disclaimerHtml = "* <b>3.2.5 고지 유병자 실손</b> 공제 기준이 적용되었습니다.<br>";
+        disclaimerHtml += "* 3대 비급여 특약은 운영하지 않으며, 외래 처방조제비는 보상하지 않습니다.<br>";
+        if (careType === 'outpatient') {
+            disclaimerHtml += "<b>* 주의: 유병자 통원 외래의 1회당 한도(20만 원)를 초과할 수 없습니다.</b>";
+        } else {
+            disclaimerHtml += "* 주의: 유병자 입원 연간 본인부담금 상한액(200만 원) 적용 시 실제 수령액이 다를 수 있습니다.";
+        }
+        document.getElementById('disclaimerText').innerHTML = disclaimerHtml;
+    }
+
+    function renderResults(total, cov, gnc, m3, m3m, m3i, m3mri, sev, nsev) {
+        document.getElementById('valCovered').innerText = Math.floor(cov).toLocaleString('ko-KR') + " 원";
+        
+        if(currentMode === 'general' || gnc > 0 || total === 0) {
+            document.getElementById('itemGeneralNC').style.display = 'flex';
+            document.getElementById('valGeneralNC').innerText = Math.floor(gnc).toLocaleString('ko-KR') + " 원";
+        } else {
+            document.getElementById('itemGeneralNC').style.display = 'none';
+        }
+        
+        document.getElementById('valSevere').innerText = Math.floor(sev).toLocaleString('ko-KR') + " 원";
+        document.getElementById('valNonSevere').innerText = Math.floor(nsev).toLocaleString('ko-KR') + " 원";
+        
+        document.getElementById('valMajor3Total').innerText = Math.floor(m3).toLocaleString('ko-KR') + " 원";
+        document.getElementById('valMajor3Manual').innerText = Math.floor(m3m).toLocaleString('ko-KR') + " 원";
+        document.getElementById('valMajor3Injection').innerText = Math.floor(m3i).toLocaleString('ko-KR') + " 원";
+        document.getElementById('valMajor3MRI').innerText = Math.floor(m3mri).toLocaleString('ko-KR') + " 원";
+        
+        document.getElementById('resultAmount').innerText = Math.floor(total).toLocaleString('ko-KR') + " 원";
+        document.getElementById('resultBox').style.display = 'block';
+    }
 </script>
 
 </body>
