@@ -356,13 +356,12 @@
 
 <!-- 0. 로그인(비밀번호 입력) 화면 -->
 <div id="loginScreen" class="calculator-container">
-    <h2 style="margin-top: 10px; margin-bottom: 15px;">접속하기</h2>
+    <h2 style="margin-top: 10px; margin-bottom: 15px;">실손 실수령 계산기</h2>
     <p style="text-align: center; color: #4e5968; margin-bottom: 30px; font-size: 15px; word-break: keep-all; line-height: 1.5;">
-        계산기를 사용하려면 비밀번호를 입력해주세요.<br>
-        <span style="font-size: 12px; color: #8b95a1;">(관리자는 마스터 번호 입력 시 설정 화면으로 이동)</span>
+        계산기를 사용하려면 비밀번호를 입력해주세요.
     </p>
     <div class="form-group">
-        <input type="password" id="passwordInput" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) checkPassword()" style="text-align: center; font-size: 18px; letter-spacing: 3px;">
+        <input type="password" id="passwordInput" maxlength="6" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) checkPassword()" style="text-align: center; font-size: 18px; letter-spacing: 3px;">
     </div>
     <button class="submit-btn" onclick="checkPassword()" style="margin-top: 15px; padding: 18px; font-size: 18px;">확인</button>
 </div>
@@ -375,13 +374,13 @@
         <span style="font-size: 12px; color: #8b95a1;">(해당 기기의 브라우저에만 저장됩니다)</span>
     </p>
     <div class="form-group">
-        <input type="text" id="newPasswordInput" placeholder="새 비밀번호 입력" style="text-align: center; font-size: 18px; letter-spacing: 2px;">
+        <input type="text" id="newPasswordInput" maxlength="6" placeholder="새 비밀번호 입력" style="text-align: center; font-size: 18px; letter-spacing: 2px;">
     </div>
     <button class="submit-btn" onclick="changeUserPassword()" style="margin-top: 15px; padding: 18px; font-size: 18px; background-color: #e53e3e; border: none;">비밀번호 변경</button>
     <button class="back-btn" onclick="cancelAdmin()" style="margin-top: 15px; width: 100%; justify-content: center; background-color: #f2f4f6; color: #4e5968; border-radius: 10px; padding: 14px;">취소 및 돌아가기</button>
 </div>
 
-<!-- 1. 시작 화면 -->
+<!-- 1. 시작 화면 (기본 숨김 처리) -->
 <div id="homeScreen" class="calculator-container" style="display: none;">
     <h2 style="margin-top: 10px;">어떤 실손보험을 계산할까요?</h2>
     <div style="margin-top: 35px;">
@@ -396,7 +395,7 @@
     </div>
 </div>
 
-<!-- 2. 계산기 화면 -->
+<!-- 2. 계산기 화면 (기본 숨김 처리) -->
 <div id="calcScreen" class="calculator-container" style="display: none;">
     <button class="back-btn" onclick="goHome()">← 실손 유형 다시 선택하기</button>
     <h2 id="calcTitle">실손보험 예상 수령액 계산기</h2>
@@ -548,10 +547,9 @@
 
 <script>
     // --- 비밀번호 설정 구역 --- //
-    const MASTER_PW = "777777"; // 마스터 비밀번호 6자리
-    const DEFAULT_USER_PW = "1234"; // 일반 초기 비밀번호
+    const MASTER_PW = "777777"; 
+    const DEFAULT_USER_PW = "1234"; 
 
-    // 사용자의 기기에 저장된 비밀번호를 불러오고, 없으면 기본값(1234) 적용
     let currentPw = localStorage.getItem('silson_calc_pw') || DEFAULT_USER_PW;
 
     function checkPassword() {
@@ -576,7 +574,6 @@
             alert('새 비밀번호를 입력해주세요.');
             return;
         }
-        // 로컬 스토리지에 새 비밀번호 저장
         localStorage.setItem('silson_calc_pw', newPw);
         currentPw = newPw;
         alert('비밀번호가 성공적으로 변경되었습니다!');
