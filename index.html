@@ -17,7 +17,6 @@
             box-sizing: border-box;
         }
         .calculator-container {
-            /* 기존 흰색 바탕에서 밝은 파스텔 블루 톤으로 변경 */
             background-color: #f4f9ff; 
             padding: 35px 25px;
             border-radius: 20px;
@@ -27,40 +26,50 @@
             box-sizing: border-box;
             position: relative;
         }
+        
+        /* 공통 제목 스타일 */
         h2 {
             text-align: center;
             color: #191f28;
-            font-size: 24px; /* 22px에서 24px로 +2 증가 */
+            font-size: 24px;
             font-weight: 700;
             margin-top: 0;
             margin-bottom: 25px;
         }
+
+        /* 첫 화면 전용 제목 스타일 (1.5배 확대) */
+        #homeScreen h2 {
+            font-size: 30px;
+            line-height: 1.4;
+            word-break: keep-all;
+            margin-bottom: 40px;
+        }
         
-        /* 시작 화면 버튼 스타일 */
+        /* 시작 화면 버튼 스타일 (1.5배 확대) */
         .selection-btn {
             width: 100%;
-            padding: 35px 20px; /* 위아래 패딩 20px에서 35px로 증가 (약 1.5배 높이) */
+            padding: 40px 20px;
             margin-bottom: 20px;
             background-color: #ffffff;
             color: #3182f6;
             border: 2px solid #3182f6;
-            border-radius: 12px;
-            font-size: 20px; /* 18px에서 20px로 +2 증가 */
-            font-weight: 700;
+            border-radius: 16px;
+            font-size: 28px;
+            font-weight: 800;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px; /* 텍스트 간격 살짝 증가 */
+            gap: 12px;
         }
         .selection-btn:hover, .selection-btn:active {
             background-color: #3182f6;
             color: #ffffff;
         }
         .selection-btn span {
-            font-size: 15px; /* 13px에서 15px로 +2 증가 */
-            font-weight: 500;
+            font-size: 18px;
+            font-weight: 600;
             color: inherit;
             opacity: 0.8;
         }
@@ -218,7 +227,6 @@
             background-color: #1b64da;
         }
         
-        /* 배경이 파스텔로 바뀌었으므로 결과창은 흰색으로 대비를 줌 */
         .result-box {
             margin-top: 25px;
             padding: 25px 20px;
